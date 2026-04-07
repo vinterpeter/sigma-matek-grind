@@ -952,6 +952,8 @@
         <div class="cr-rarity" id="dcRarity"></div>
         <div class="dc-stats" id="dcStats"></div>
         <div class="dc-flavor" id="dcFlavor"></div>
+        <button class="story-read-btn" id="dcReadBtn" onclick="readDetailStory()" style="margin:8px auto 0;display:inline-flex"><span id="dcReadIcon">🔊</span> Felolvasás</button>
+        <br>
         <button class="dc-close" onclick="closeDetail()">Bezárás</button>
         <button class="dc-close" id="dcDeleteBtn" onclick="deleteFromCollection()" style="border-color:var(--neon-mag);color:var(--neon-mag);margin-top:6px">Törlés 🗑️</button>
     </div>
@@ -1987,7 +1989,25 @@ function showDetail(idx) {
     document.getElementById('dcFlavor').textContent=item.story||item.flavor||'';
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
-function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); }
+function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); if(window.speechSynthesis.speaking) window.speechSynthesis.cancel(); }
+function readDetailStory() {
+    const item = state.collection[detailIdx];
+    if (!item) return;
+    const btn = document.getElementById('dcReadBtn');
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        btn.classList.remove('playing');
+        btn.innerHTML = '<span>🔊</span> Felolvasás';
+        return;
+    }
+    const text = stripEmoji(`${item.name}. ${item.story || item.flavor || ''}`);
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'hu-HU'; u.rate = 0.9; u.pitch = 1.1; u.volume = 0.9;
+    btn.classList.add('playing');
+    btn.innerHTML = '<span>⏹️</span> Leállítás';
+    u.onend = () => { btn.classList.remove('playing'); btn.innerHTML = '<span>🔊</span> Felolvasás'; };
+    window.speechSynthesis.speak(u);
+}
 function deleteFromCollection() {
     if(detailIdx<0 || detailIdx>=state.collection.length) return;
     state.collection.splice(detailIdx, 1);
