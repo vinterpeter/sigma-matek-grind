@@ -1741,7 +1741,8 @@ function generateFusion() {
     let li=0;
     const loadInt = setInterval(()=>{li=(li+1)%loadTexts.length; document.getElementById('loadingText').textContent=loadTexts[li];},500);
     const prompts = cards.map(c => c.prompt || c.name).join(', ');
-    const fullPrompt = `fusion hybrid creature combining: ${cards[0].name} and ${cards[1].name}. ${prompts}, meme style digital art, funny brainrot humor, colorful, detailed, high quality, epic fusion creature`;
+    const storyHints = cards.map(c => (c.story||'').split('.')[0]).filter(s=>s.length>5).join('. ');
+    const fullPrompt = `fusion hybrid creature combining: ${cards[0].name} and ${cards[1].name}. Visual elements from both: ${prompts}. Character essence: ${storyHints}. Meme style digital art, funny brainrot humor, colorful, detailed, high quality, epic fusion creature, both original characters visibly merged`;
     const seed = Math.floor(Math.random()*999999);
     const imgUrl = pollinationsUrl(fullPrompt, seed);
     const prefix = fusionPrefixes[Math.floor(Math.random()*fusionPrefixes.length)];
@@ -1775,7 +1776,9 @@ function generateFusion() {
         document.getElementById('crStats').innerHTML = `<span class="cr-stat">😎 Rizz: ${stats.rizz}</span><span class="cr-stat">🗿 Sigma: ${stats.sigma}</span><span class="cr-stat">🧠 Brainrot: ${stats.brainrot}</span>`;
         document.getElementById('crFlavor').textContent = `"${flavor}"`;
         document.getElementById('craftResult').classList.add('show');
-        window._lastCrafted = { id: 'fusion_'+Date.now(), name, rarity, rarityClass, stats, flavor, imgUrl, _seed: seed, prompt: fullPrompt, category: 'fusion', story: `${cards[0].name} + ${cards[1].name} fúziójából született. ${flavor}`, fusedFrom: cards.map(c=>c.name) };
+        const s0 = (cards[0].story||'').split('.')[0]; const s1 = (cards[1].story||'').split('.')[0];
+        const fusionStory = `${cards[0].name} és ${cards[1].name} fúziójából született. ${s0 ? s0+'.' : ''} ${s1 ? s1+'.' : ''} ${flavor}`;
+        window._lastCrafted = { id: 'fusion_'+Date.now(), name, rarity, rarityClass, stats, flavor, imgUrl, _seed: seed, prompt: fullPrompt, category: 'fusion', story: fusionStory, fusedFrom: cards.map(c=>c.name) };
         AudioEngine.speak(`${rarity} fúzió! ${name} sikeresen létrehozva!`);
         if(rarity==='Mythic'||rarity==='Legendary') createConfetti();
     };
