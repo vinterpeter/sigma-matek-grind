@@ -1143,6 +1143,16 @@ const state = {
     correctSinceLastReward:0, nextRewardAt:0,
     creatorCorrect:0,
     collection: [],
+    // Per-type stats: { correct, total }
+    typeStats: {
+        addition:{correct:0,total:0}, subtraction:{correct:0,total:0},
+        sequence:{correct:0,total:0}, ruleGame:{correct:0,total:0},
+        potlas:{correct:0,total:0}, compare:{correct:0,total:0},
+        wordProblem:{correct:0,total:0}
+    },
+    // Leitner retry queue: [{type, params, box, dueAfter}]
+    retryQueue: [],
+    questionCount: 0,
 };
 
 const levels = [
@@ -1234,6 +1244,9 @@ function loadState() {
         state.correctSinceLastReward = p.correctSinceLastReward||0;
         state.nextRewardAt = p.nextRewardAt||randReward();
         state.creatorCorrect = p.creatorCorrect||0;
+        if (p.typeStats) state.typeStats = p.typeStats;
+        state.retryQueue = p.retryQueue || [];
+        state.questionCount = p.questionCount || 0;
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
     } else { localStorage.setItem('sigmaDay3', new Date().toDateString()); state.nextRewardAt = randReward(); }
@@ -1244,11 +1257,73 @@ function randReward() { return 5 + Math.floor(Math.random()*6); }
 let currentAnswer=0, currentAnswerType='number', timerInterval=null, timerValue=100, isAnswering=false;
 let pinValue = '';
 
-// --- PROBLEM TYPE GENERATORS ---
+// --- ADAPTIVE PROBLEM SELECTION ---
 const problemTypes = ['addition','subtraction','sequence','ruleGame','potlas','compare','wordProblem'];
+let currentProblemType = '';
 
 function pickProblemType() {
-    return problemTypes[Math.floor(Math.random()*problemTypes.length)];
+    state.questionCount = (state.questionCount || 0) + 1;
+
+    // 30% chance: serve from retry queue if due
+    if (state.retryQueue && state.retryQueue.length > 0 && Math.random() < 0.3) {
+        const now = state.questionCount;
+        const dueIdx = state.retryQueue.findIndex(r => now >= r.dueAfter);
+        if (dueIdx >= 0) {
+            const retry = state.retryQueue[dueIdx];
+            state.retryQueue.splice(dueIdx, 1);
+            currentProblemType = retry.type;
+            return retry.type;
+        }
+    }
+
+    // 70%: weighted random favoring weak types
+    const weights = problemTypes.map(t => {
+        const s = state.typeStats[t] || { correct: 0, total: 0 };
+        const rate = s.total > 0 ? s.correct / s.total : 0.5;
+        return (1 - rate) + 0.15; // floor ensures mastered types still appear
+    });
+    const totalW = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * totalW;
+    for (let i = 0; i < problemTypes.length; i++) {
+        r -= weights[i];
+        if (r <= 0) { currentProblemType = problemTypes[i]; return problemTypes[i]; }
+    }
+    currentProblemType = problemTypes[0];
+    return problemTypes[0];
+}
+
+function recordAnswer(type, isCorrect) {
+    if (!state.typeStats[type]) state.typeStats[type] = { correct: 0, total: 0 };
+    state.typeStats[type].total++;
+    if (isCorrect) {
+        state.typeStats[type].correct++;
+        // Promote in retry queue if exists
+        if (state.retryQueue) {
+            const ri = state.retryQueue.findIndex(r => r.type === type);
+            if (ri >= 0) {
+                state.retryQueue[ri].box++;
+                if (state.retryQueue[ri].box >= 3) {
+                    state.retryQueue.splice(ri, 1); // mastered, remove
+                } else {
+                    // box 1: retry after 5-8 questions, box 2: after 10-15
+                    const delay = state.retryQueue[ri].box === 1 ? rnd(5, 8) : rnd(10, 15);
+                    state.retryQueue[ri].dueAfter = state.questionCount + delay;
+                }
+            }
+        }
+    } else {
+        // Add to retry queue (box 0) or reset existing
+        if (!state.retryQueue) state.retryQueue = [];
+        const existing = state.retryQueue.findIndex(r => r.type === type);
+        if (existing >= 0) {
+            state.retryQueue[existing].box = 0;
+            state.retryQueue[existing].dueAfter = state.questionCount + rnd(1, 3);
+        } else {
+            state.retryQueue.push({ type, box: 0, dueAfter: state.questionCount + rnd(1, 3) });
+        }
+        // Keep retry queue manageable
+        if (state.retryQueue.length > 10) state.retryQueue.shift();
+    }
 }
 
 function rnd(min, max) { return min + Math.floor(Math.random()*(max-min+1)); }
@@ -1498,6 +1573,7 @@ function processAnswer(answer) {
     const elapsed=Date.now()-state.questionStart, isFast=elapsed<4000;
     state.total++;
     const isCorrect = (answer === currentAnswer);
+    recordAnswer(currentProblemType, isCorrect);
     const displayEl = currentAnswerType==='compare'
         ? document.querySelector(`.compare-btn:nth-child(${answer==='<'?1:answer==='='?2:3})`)
         : document.getElementById('pinDisplay');
