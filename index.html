@@ -1509,6 +1509,8 @@ function readStory() {
 // --- MAIN GENERATE ---
 function generateProblem() {
     pinValue = ''; updatePinDisplay();
+    // Reset compare buttons from previous round
+    document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
     // Show/hide inputs
     const pinArea = document.getElementById('pinpadArea');
