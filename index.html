@@ -953,6 +953,7 @@
         <div class="dc-stats" id="dcStats"></div>
         <div class="dc-flavor" id="dcFlavor"></div>
         <button class="dc-close" onclick="closeDetail()">Bezárás</button>
+        <button class="dc-close" id="dcDeleteBtn" onclick="deleteFromCollection()" style="border-color:var(--neon-mag);color:var(--neon-mag);margin-top:6px">Törlés 🗑️</button>
     </div>
 </div>
 
@@ -1115,7 +1116,8 @@ const AudioEngine = {
     _token(t) { this._osc(880,'sine',t,0.1,0.1); this._osc(1320,'sine',t+0.1,0.15,0.1); },
     speak(text) {
         if (!this.enabled || !('speechSynthesis' in window)) return;
-        const u = new SpeechSynthesisUtterance(text);
+        const clean = typeof stripEmoji === 'function' ? stripEmoji(text) : text;
+        const u = new SpeechSynthesisUtterance(clean);
         u.lang = 'hu-HU'; u.rate = 1.1; u.pitch = 1.2; u.volume = 0.8;
         window.speechSynthesis.speak(u);
     }
@@ -1399,6 +1401,10 @@ function genWordProblem() {
     story.innerHTML = `${wp.text}<span class="story-q">${wp.q}</span><button class="story-read-btn" id="storyReadBtn" onclick="readStory()"><span id="storyReadIcon">🔊</span> Felolvasás</button>`;
 }
 
+function stripEmoji(str) {
+    return str.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}]/gu, '').replace(/\s{2,}/g,' ').trim();
+}
+
 function readStory() {
     if(!window._currentStoryText) return;
     const btn = document.getElementById('storyReadBtn');
@@ -1408,7 +1414,7 @@ function readStory() {
         btn.innerHTML = '<span>🔊</span> Felolvasás';
         return;
     }
-    const u = new SpeechSynthesisUtterance(window._currentStoryText);
+    const u = new SpeechSynthesisUtterance(stripEmoji(window._currentStoryText));
     u.lang = 'hu-HU'; u.rate = 0.9; u.pitch = 1.1; u.volume = 0.9;
     btn.classList.add('playing');
     btn.innerHTML = '<span>⏹️</span> Leállítás';
@@ -1676,7 +1682,6 @@ function generateFusion() {
 
 function keepCrafted() {
     if(!window._lastCrafted) return;
-    fusionSelected.sort((a,b)=>b-a).forEach(idx => state.collection.splice(idx, 1));
     state.collection.push(window._lastCrafted);
     AudioEngine.play('token'); AudioEngine.speak("Fúziós brainrot hozzáadva a gyűjteményhez!");
     saveState(); renderCollection(); checkBadges(); closeCrafting();
@@ -1971,7 +1976,9 @@ function renderCollection() {
     });
 }
 
+let detailIdx = -1;
 function showDetail(idx) {
+    detailIdx = idx;
     const item=state.collection[idx];
     document.getElementById('dcImg').src=item.imgUrl||item.image||'';
     document.getElementById('dcName').textContent=item.name;
@@ -1981,6 +1988,13 @@ function showDetail(idx) {
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); }
+function deleteFromCollection() {
+    if(detailIdx<0 || detailIdx>=state.collection.length) return;
+    state.collection.splice(detailIdx, 1);
+    saveState(); renderCollection(); updateTokenDisplay();
+    closeDetail();
+    AudioEngine.play('click');
+}
 
 // ==================== ENCYCLOPEDIA ====================
 let currentEncyFilter = 'all';
