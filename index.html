@@ -845,7 +845,7 @@
             <span class="bc-value" id="tokenDisplay">0</span>
             <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Fúzió</button>
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Enciklopédia</button>
-            <button class="action-btn craft-btn" onclick="openCreator()" style="background:linear-gradient(135deg,var(--neon-lime),#60cc00)">🎨 Készítő</button>
+            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="background:linear-gradient(135deg,var(--neon-lime),#60cc00)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(0/20)</span></button>
         </div>
 
         <div class="daily-section">
@@ -1082,6 +1082,7 @@ function loadStateFromCloud() {
                 state.tokens = p.tokens || 0;
                 state.correctSinceLastReward = p.correctSinceLastReward || 0;
                 state.nextRewardAt = p.nextRewardAt || randReward();
+                state.creatorCorrect = p.creatorCorrect || 0;
                 updateStats(); renderCollection(); renderBadges(); updateTokenDisplay();
                 console.log('State loaded from cloud');
             }
@@ -1145,6 +1146,7 @@ const state = {
     dailyCorrect:0, dailyGoal:10, dailyClaimed:false, badges: new Set(),
     questionStart:0, fastStreak:0, tokens:0,
     correctSinceLastReward:0, nextRewardAt:0,
+    creatorCorrect:0,
     collection: [],
 };
 
@@ -1236,6 +1238,7 @@ function loadState() {
         state.tokens = p.tokens||0;
         state.correctSinceLastReward = p.correctSinceLastReward||0;
         state.nextRewardAt = p.nextRewardAt||randReward();
+        state.creatorCorrect = p.creatorCorrect||0;
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
     } else { localStorage.setItem('sigmaDay3', new Date().toDateString()); state.nextRewardAt = randReward(); }
@@ -1499,7 +1502,7 @@ function processAnswer(answer) {
 
     if (isCorrect) {
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'correct':'correct-flash');
-        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++;
+        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.creatorCorrect++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
         if(state.streak>=3)xp+=5; if(state.streak>=5)xp+=5; if(state.streak>=10)xp+=10;
@@ -1539,7 +1542,7 @@ function processAnswer(answer) {
         const msg=wrongMessages[Math.floor(Math.random()*wrongMessages.length)];
         showFeedback(msg.text,msg.color);
     }
-    updateStats(); checkBadges(); checkDaily(); saveState();
+    updateStats(); updateTokenDisplay(); checkBadges(); checkDaily(); saveState();
     setTimeout(()=>generateProblem(),1600);
 }
 
@@ -1587,8 +1590,11 @@ function claimReward() { document.getElementById('brainrotRewardOverlay').classL
 
 function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
-    const btn = document.getElementById('craftBtn');
-    btn.disabled = state.collection.length < 2;
+    document.getElementById('craftBtn').disabled = state.collection.length < 2;
+    const creatorBtn = document.getElementById('creatorBtn');
+    const ready = state.creatorCorrect >= 20;
+    creatorBtn.disabled = !ready;
+    document.getElementById('creatorProgress').textContent = ready ? '✓' : `(${state.creatorCorrect}/20)`;
 }
 
 // ==================== FUSION ====================
@@ -1703,6 +1709,7 @@ let creatorSelections = { animal: null, object: null, location: null, trait: nul
 let creatorGeneratedCard = null;
 
 function openCreator() {
+    if (state.creatorCorrect < 20) return;
     AudioEngine.play('click');
     creatorStep = 0;
     creatorSelections = { animal: null, object: null, location: null, trait: null, message: '' };
@@ -1953,6 +1960,7 @@ function keepCreated() {
     if (!creatorGeneratedCard) return;
     state.collection.push(creatorGeneratedCard);
     state.tokens++;
+    state.creatorCorrect = 0;
     AudioEngine.play('token');
     AudioEngine.speak("Új brainrot hozzáadva a gyűjteményhez!");
     saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
