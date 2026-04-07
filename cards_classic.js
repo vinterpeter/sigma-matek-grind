@@ -498,5 +498,15 @@ const classicBrainrots = [
     prompt: "mewing meme, person pressing tongue against roof of mouth for jawline, sharp jawline side profile, looksmax aesthetic, before and after comparison style, dramatic lighting, meme humor",
     story: "Egy titkos technika ahol a nyelvedet a szájpadlásodhoz nyomod és attól szebb leszel — legalábbis ezt mondják! Mindenki csinálja, senki sem tudja hogy működik-e, de nagyon mókás közben nézni! 👅",
     kidRating: "safe"
+  },
+  {
+    id: "67",
+    name: "67",
+    category: "classic",
+    rarity: "Rare",
+    image: "images/67.jpg",
+    prompt: "number 67 meme, the number sixty seven written in bold dramatic style, glowing neon, viral meme aesthetic",
+    story: "A titokzatos szám, a 67! Senki sem tudja pontosan miért, de ez a szám mindenhol felbukkan. Ha meglátod, tudod hogy valami különleges dolog fog történni. A Brainrot Birodalom szerencseszáma! 🔢",
+    kidRating: "safe"
   }
 ];
