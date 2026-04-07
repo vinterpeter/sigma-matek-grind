@@ -508,5 +508,15 @@ const classicBrainrots = [
     prompt: "number 67 meme, the number sixty seven written in bold dramatic style, glowing neon, viral meme aesthetic",
     story: "A titokzatos szám, a 67! Senki sem tudja pontosan miért, de ez a szám mindenhol felbukkan. Ha meglátod, tudod hogy valami különleges dolog fog történni. A Brainrot Birodalom szerencseszáma! 🔢",
     kidRating: "safe"
+  },
+  {
+    id: "six_seven",
+    name: "Six Seven",
+    category: "classic",
+    rarity: "Epic",
+    image: "images/six_seven.jpg",
+    prompt: "number 6 and 7 as italian brainrot cartoon characters, six is scared of seven because seven ate nine, funny meme style, colorful brainrot aesthetic",
+    story: "Miért fél a 6-os a 7-estől? Mert a 7 megette a 9-est! Ez a Brainrot Birodalom legrégibb és legviccesebb legendája. A 6-os azóta is remegve bújik el ha meglátja a 7-est, a 7-es pedig azóta is éhesen kergeti a számokat. A 8-as próbál békét teremteni, de nincs sok sikere! 🔢",
+    kidRating: "safe"
   }
 ];

@@ -922,10 +922,10 @@
 <div class="craft-overlay" id="craftOverlay">
     <div class="craft-modal">
         <h2>🔬 BRAINROT FÚZIÓ</h2>
-        <div class="craft-subtitle">Válassz 2 kártyát a gyűjteményedből — az AI összeolvasztja őket!</div>
-        <div class="craft-cost">Válassz ki pontosan 2 kártyát!</div>
+        <div class="craft-subtitle">Válassz 2-5 kártyát a gyűjteményedből — az AI összeolvasztja őket!</div>
+        <div class="craft-cost">Válassz ki legalább 2, max 5 kártyát!</div>
         <div class="craft-category">
-            <div class="craft-category-title">🃏 Válaszd ki a 2 kártyát</div>
+            <div class="craft-category-title">🃏 Válaszd ki a kártyákat (2-5)</div>
             <div class="craft-options fusion-card-grid" id="fusionCardGrid"></div>
         </div>
         <button class="craft-generate-btn" id="craftGenerateBtn" onclick="generateFusion()" disabled>🍌 FÚZIÓ INDÍTÁSA 🍌</button>
@@ -1142,6 +1142,7 @@ const state = {
     questionStart:0, fastStreak:0, tokens:0,
     correctSinceLastReward:0, nextRewardAt:0,
     creatorCorrect:0,
+    fusionTokens:0,
     collection: [],
     // Per-type stats: { correct, total }
     typeStats: {
@@ -1244,6 +1245,7 @@ function loadState() {
         state.correctSinceLastReward = p.correctSinceLastReward||0;
         state.nextRewardAt = p.nextRewardAt||randReward();
         state.creatorCorrect = p.creatorCorrect||0;
+        state.fusionTokens = p.fusionTokens||0;
         if (p.typeStats) state.typeStats = p.typeStats;
         state.retryQueue = p.retryQueue || [];
         state.questionCount = p.questionCount || 0;
@@ -1582,7 +1584,7 @@ function processAnswer(answer) {
 
     if (isCorrect) {
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'correct':'correct-flash');
-        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.creatorCorrect++;
+        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.creatorCorrect++; state.fusionTokens++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
         if(state.streak>=3)xp+=5; if(state.streak>=5)xp+=5; if(state.streak>=10)xp+=10;
@@ -1688,7 +1690,8 @@ function readRewardStory() {
 function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
     const td2 = document.getElementById('tokenDisplay2'); if(td2) td2.textContent = state.collection.length;
-    document.getElementById('craftBtn').disabled = state.collection.length < 2;
+    const canFuse = state.collection.length >= 2 && state.fusionTokens >= 1;
+    document.getElementById('craftBtn').disabled = !canFuse;
     const creatorBtn = document.getElementById('creatorBtn');
     const ready = state.creatorCorrect >= 20;
     creatorBtn.disabled = !ready;
@@ -1699,7 +1702,7 @@ function updateTokenDisplay() {
 let fusionSelected = [];
 
 function openCrafting() {
-    if(state.collection.length < 2) return;
+    if(state.collection.length < 2 || state.fusionTokens < 1) return;
     AudioEngine.play('click'); fusionSelected = [];
     const grid = document.getElementById('fusionCardGrid'); grid.innerHTML = '';
     state.collection.forEach((card, idx) => {
@@ -1710,7 +1713,7 @@ function openCrafting() {
             AudioEngine.play('click');
             const selIdx = fusionSelected.indexOf(idx);
             if (selIdx > -1) { fusionSelected.splice(selIdx, 1); el.classList.remove('selected'); }
-            else if (fusionSelected.length < 2) { fusionSelected.push(idx); el.classList.add('selected'); }
+            else if (fusionSelected.length < 5) { fusionSelected.push(idx); el.classList.add('selected'); }
             updateFusionBtn();
         };
         grid.appendChild(el);
@@ -1724,15 +1727,17 @@ function openCrafting() {
 
 function updateFusionBtn() {
     const btn = document.getElementById('craftGenerateBtn');
-    btn.disabled = fusionSelected.length !== 2;
-    btn.textContent = fusionSelected.length === 2 ? '🍌 FÚZIÓ INDÍTÁSA 🍌' : `🃏 Válassz ${2-fusionSelected.length} kártyát`;
+    const n = fusionSelected.length;
+    btn.disabled = n < 2;
+    btn.textContent = n >= 2 ? `🍌 FÚZIÓ INDÍTÁSA (${n} kártya) 🍌` : `🃏 Válassz még ${2-n} kártyát`;
 }
 
 function closeCrafting() { document.getElementById('craftOverlay').classList.remove('show'); AudioEngine.play('click'); }
 
 function generateFusion() {
-    if (fusionSelected.length !== 2) return;
+    if (fusionSelected.length < 2) return;
     const cards = fusionSelected.map(i => state.collection[i]);
+    const n = cards.length;
     document.getElementById('craftGenerateBtn').style.display='none';
     document.getElementById('craftLoading').classList.add('show');
     document.getElementById('craftResult').classList.remove('show');
@@ -1742,15 +1747,16 @@ function generateFusion() {
     const loadInt = setInterval(()=>{li=(li+1)%loadTexts.length; document.getElementById('loadingText').textContent=loadTexts[li];},500);
     const prompts = cards.map(c => c.prompt || c.name).join(', ');
     const storyHints = cards.map(c => (c.story||'').split('.')[0]).filter(s=>s.length>5).join('. ');
-    const fullPrompt = `fusion hybrid creature combining: ${cards[0].name} and ${cards[1].name}. Visual elements from both: ${prompts}. Character essence: ${storyHints}. Meme style digital art, funny brainrot humor, colorful, detailed, high quality, epic fusion creature, both original characters visibly merged`;
+    const nameList = cards.map(c => c.name).join(' and ');
+    const fullPrompt = `fusion hybrid creature combining: ${nameList}. Visual elements from all: ${prompts}. Character essence: ${storyHints}. Meme style digital art, funny brainrot humor, colorful, detailed, high quality, epic fusion creature, all original characters visibly merged`;
     const seed = Math.floor(Math.random()*999999);
     const imgUrl = pollinationsUrl(fullPrompt, seed);
     const prefix = fusionPrefixes[Math.floor(Math.random()*fusionPrefixes.length)];
     const nameParts = cards.map(c => c.name.split(' ')[0]);
-    const name = `${prefix} ${nameParts[0]}-${nameParts[1]}`;
+    const name = `${prefix} ${nameParts.join('-')}`;
     const rarityOrder = {Common:1,Rare:2,Epic:3,Legendary:4,Mythic:5};
-    const avgRarity = cards.reduce((s,c) => s + (rarityOrder[c.rarity]||1), 0) / 2;
-    const boosted = avgRarity + (Math.random() < 0.3 ? 1 : 0);
+    const avgRarity = cards.reduce((s,c) => s + (rarityOrder[c.rarity]||1), 0) / n;
+    const boosted = avgRarity + (n >= 4 ? 1 : n >= 3 ? 0.5 : 0) + (Math.random() < 0.3 ? 1 : 0);
     let rarity, rarityClass;
     if(boosted>=4.5){rarity="Mythic";rarityClass="rarity-mythic";}
     else if(boosted>=3.5){rarity="Legendary";rarityClass="rarity-legendary";}
@@ -1758,9 +1764,9 @@ function generateFusion() {
     else if(boosted>=1.5){rarity="Rare";rarityClass="rarity-rare";}
     else{rarity="Common";rarityClass="rarity-common";}
     const stats = {
-        rizz: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.rizz||50),0)/2) + 10 + Math.floor(Math.random()*20)),
-        sigma: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.sigma||50),0)/2) + 10 + Math.floor(Math.random()*20)),
-        brainrot: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.brainrot||50),0)/2) + 10 + Math.floor(Math.random()*20))
+        rizz: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.rizz||50),0)/n) + 5*n + Math.floor(Math.random()*15)),
+        sigma: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.sigma||50),0)/n) + 5*n + Math.floor(Math.random()*15)),
+        brainrot: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.brainrot||50),0)/n) + 5*n + Math.floor(Math.random()*15))
     };
     const flavor = fusionFlavors[Math.floor(Math.random()*fusionFlavors.length)];
     const preImg = new Image(); preImg.src = imgUrl;
@@ -1776,8 +1782,8 @@ function generateFusion() {
         document.getElementById('crStats').innerHTML = `<span class="cr-stat">😎 Rizz: ${stats.rizz}</span><span class="cr-stat">🗿 Sigma: ${stats.sigma}</span><span class="cr-stat">🧠 Brainrot: ${stats.brainrot}</span>`;
         document.getElementById('crFlavor').textContent = `"${flavor}"`;
         document.getElementById('craftResult').classList.add('show');
-        const s0 = (cards[0].story||'').split('.')[0]; const s1 = (cards[1].story||'').split('.')[0];
-        const fusionStory = `${cards[0].name} és ${cards[1].name} fúziójából született. ${s0 ? s0+'.' : ''} ${s1 ? s1+'.' : ''} ${flavor}`;
+        const storyParts = cards.map(c => (c.story||'').split('.')[0]).filter(s=>s.length>5);
+        const fusionStory = `${cards.map(c=>c.name).join(', ')} fúziójából született. ${storyParts.join('. ')}. ${flavor}`;
         window._lastCrafted = { id: 'fusion_'+Date.now(), name, rarity, rarityClass, stats, flavor, imgUrl, _seed: seed, prompt: fullPrompt, category: 'fusion', story: fusionStory, fusedFrom: cards.map(c=>c.name) };
         AudioEngine.speak(`${rarity} fúzió! ${name} sikeresen létrehozva!`);
         if(rarity==='Mythic'||rarity==='Legendary') createConfetti();
@@ -1790,8 +1796,9 @@ function generateFusion() {
 function keepCrafted() {
     if(!window._lastCrafted) return;
     state.collection.push(window._lastCrafted);
+    state.fusionTokens = 0;
     AudioEngine.play('token'); AudioEngine.speak("Fúziós brainrot hozzáadva a gyűjteményhez!");
-    saveState(); renderCollection(); checkBadges(); closeCrafting();
+    saveState(); renderCollection(); updateTokenDisplay(); checkBadges(); closeCrafting();
     document.getElementById('craftGenerateBtn').style.display=''; window._lastCrafted=null;
 }
 

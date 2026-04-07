@@ -46,6 +46,7 @@ const creatorObjects = [
   { id: "clock", name: "Óra", nameIt: "Orologio Antico", emoji: "🕰️", prompt: "antique grandfather clock with pendulum" },
   { id: "umbrella", name: "Esernyő", nameIt: "Ombrello Elegante", emoji: "☂️", prompt: "colorful open umbrella" },
   { id: "donut", name: "Fánk", nameIt: "Ciambella Glassata", emoji: "🍩", prompt: "pink frosted donut with sprinkles" },
+  { id: "six_seven", name: "Six Seven", nameIt: "Sei Sette Mangiatore", emoji: "6️⃣7️⃣", prompt: "number 6 scared of number 7 cartoon characters, seven ate nine meme" },
 ];
 
 const creatorLocations = [
