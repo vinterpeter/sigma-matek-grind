@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <title>🧠 Sigma Matek Grind - Zétény</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap');
@@ -1023,11 +1024,73 @@
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="cards_classic.js"></script>
 <script src="cards_italian.js"></script>
 <script src="creator_data.js"></script>
 
 <script>
+// ==================== FIREBASE ====================
+const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    authDomain: "sigma-matek-grind.firebaseapp.com",
+    projectId: "sigma-matek-grind",
+    storageBucket: "sigma-matek-grind.appspot.com",
+    messagingSenderId: "000000000000",
+    appId: "1:000000000000:web:0000000000000000"
+};
+
+let db = null, fbUser = null, fbReady = false;
+
+function initFirebase() {
+    try {
+        if (!firebase || !FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.includes('xxxx')) {
+            console.log('Firebase not configured, using localStorage only');
+            return;
+        }
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.firestore();
+        firebase.auth().signInAnonymously().then(cred => {
+            fbUser = cred.user;
+            fbReady = true;
+            console.log('Firebase ready, uid:', fbUser.uid);
+            loadStateFromCloud();
+        }).catch(e => console.warn('Firebase auth failed:', e));
+    } catch(e) { console.warn('Firebase init failed:', e); }
+}
+
+function saveStateToCloud() {
+    if (!fbReady || !db || !fbUser) return;
+    const data = { ...state, badges: Array.from(state.badges), updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    db.collection('users').doc(fbUser.uid).set(data, { merge: true }).catch(e => console.warn('Cloud save failed:', e));
+}
+
+function loadStateFromCloud() {
+    if (!fbReady || !db || !fbUser) return;
+    db.collection('users').doc(fbUser.uid).get().then(doc => {
+        if (doc.exists) {
+            const p = doc.data();
+            // Only overwrite if cloud data is newer or local is empty
+            const localTotal = state.total || 0;
+            const cloudTotal = p.total || 0;
+            if (cloudTotal >= localTotal) {
+                Object.assign(state, p);
+                state.badges = new Set(p.badges || []);
+                state.collection = p.collection || [];
+                state.tokens = p.tokens || 0;
+                state.correctSinceLastReward = p.correctSinceLastReward || 0;
+                state.nextRewardAt = p.nextRewardAt || randReward();
+                updateStats(); renderCollection(); renderBadges(); updateTokenDisplay();
+                console.log('State loaded from cloud');
+            }
+        }
+    }).catch(e => console.warn('Cloud load failed:', e));
+}
+
+try { initFirebase(); } catch(e) {}
+
 // ==================== POLLINATIONS API ====================
 const POLLINATIONS_URL = 'https://image.pollinations.ai/prompt/';
 
@@ -1159,7 +1222,10 @@ const streakMessages = {3:"🔥 3x STREAK!",5:"💥 5x UNSTOPPABLE!",7:"⚡ 7x S
 const streakVoices = {3:"Három egymás után!",5:"Öt streak! Megállíthatatlan!",7:"Hét! Sigma mód!",10:"Tízes streak! Gigachad!",15:"Tizenöt! Legendás!",20:"Húsz! Isten szint!"};
 
 // ==================== SAVE/LOAD ====================
-function saveState() { localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)})); }
+function saveState() {
+    localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)}));
+    saveStateToCloud();
+}
 function loadState() {
     const d = localStorage.getItem('sigmaMatek3');
     if (d) {
