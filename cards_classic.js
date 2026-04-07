@@ -354,7 +354,7 @@ const classicBrainrots = [
     name: "UNO Reverse Card",
     category: "classic",
     rarity: "Common",
-    image: "images/uno_reverse.png",
+    image: "images/uno_reverse.jpg",
     prompt: "UNO reverse card meme, close up of the UNO reverse card game card with circular arrow symbol, red or blue card, bold colors, clean graphic, the ultimate counter move",
     story: "A legerősebb kártya a világon! Ha valaki csúnyát mond neked, előveszed és minden visszaszáll rá. Nincs ellene védekezés! Ez a végső fegyver minden vitában! 🔄",
     kidRating: "safe"
