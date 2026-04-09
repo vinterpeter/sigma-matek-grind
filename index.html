@@ -926,6 +926,7 @@
             <div class="top-bar-right">
                 <span class="top-stat">⭐ <span id="scoreDisplay">0</span></span>
                 <span class="top-stat">🪙 <span id="tallierDisplay">0</span></span>
+                <span class="top-stat">🏆 <span id="trophyDisplay">0</span></span>
                 <span class="top-stat">🃏 <span id="tokenDisplay">0</span></span>
             </div>
         </div>
@@ -1155,6 +1156,7 @@
     <div class="battle-inner">
         <div class="battle-header">
             <h2>BRAINROT CSATA</h2>
+            <div class="battle-status" id="battleRankDisplay" style="color:var(--neon-gold)"></div>
             <div class="battle-status" id="battleTurnStatus"></div>
             <button class="encyclopedia-close" onclick="closeBattle()" style="position:absolute;right:8px;top:8px">Kilépés ✖</button>
         </div>
@@ -1335,6 +1337,8 @@ const state = {
     retryQueue: [],
     questionCount: 0,
     eventLog: [],
+    trophies: 0,
+    battleDifficulty: 1.0,
 };
 
 const levels = [
@@ -1430,6 +1434,8 @@ function loadState() {
         state.retryQueue = p.retryQueue || [];
         state.questionCount = p.questionCount || 0;
         state.eventLog = p.eventLog || [];
+        state.trophies = p.trophies || 0;
+        state.battleDifficulty = p.battleDifficulty || 1.0;
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
     } else { localStorage.setItem('sigmaDay3', new Date().toDateString()); state.nextRewardAt = randReward(); }
@@ -1887,6 +1893,7 @@ function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
     const td2 = document.getElementById('tokenDisplay2'); if(td2) td2.textContent = state.collection.length;
     const td = document.getElementById('tallierDisplay'); if(td) td.textContent = state.talpieres;
+    const tp = document.getElementById('trophyDisplay'); if(tp) tp.textContent = state.trophies || 0;
     const canFuse = state.collection.length >= 2 && state.talpieres >= 1;
     document.getElementById('craftBtn').disabled = !canFuse;
     document.getElementById('craftBtn').textContent = canFuse ? '🔬 Fúzió (1🪙)' : `🔬 Fúzió (${state.talpieres}/1🪙)`;
@@ -2279,6 +2286,30 @@ function keepCreated() {
 }
 
 // ==================== BATTLE SYSTEM ====================
+const militaryRanks = [
+    { min:0,  name:'Újonc',          icon:'🔰' },
+    { min:1,  name:'Honvéd',         icon:'🪖' },
+    { min:3,  name:'Őrvezető',       icon:'⭐' },
+    { min:5,  name:'Tizedes',        icon:'⭐⭐' },
+    { min:8,  name:'Szakaszvezető',   icon:'🎖️' },
+    { min:12, name:'Őrmester',       icon:'🎖️⭐' },
+    { min:17, name:'Zászlós',        icon:'🏅' },
+    { min:23, name:'Hadnagy',        icon:'🏅⭐' },
+    { min:30, name:'Százados',       icon:'🏅🏅' },
+    { min:40, name:'Őrnagy',         icon:'🎗️' },
+    { min:50, name:'Ezredes',        icon:'🎗️⭐' },
+    { min:65, name:'Dandártábornok',  icon:'⚔️' },
+    { min:80, name:'Vezérezredes',   icon:'⚔️⭐' },
+    { min:100,name:'Tábornagy',      icon:'👑⚔️' },
+];
+
+function getMilitaryRank() {
+    const t = state.trophies || 0;
+    let rank = militaryRanks[0];
+    for (const r of militaryRanks) { if (t >= r.min) rank = r; }
+    return rank;
+}
+
 let battleState = null;
 
 function cardHP(card) {
@@ -2332,14 +2363,13 @@ function startBattle() {
         return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), alive: true };
     });
 
-    // Enemy: 3 cards balanced to player strength
+    // Enemy: 3 cards scaled by difficulty
+    const diff = state.battleDifficulty || 1.0;
     const playerAvg = Math.round(playerCards.reduce((s,c) => s + c.maxHp, 0) / 3);
     const shuffled = [...allBrainrotCards].sort(() => Math.random() - 0.5);
     const enemyCards = shuffled.slice(0, 3).map(c => {
-        // Match enemy stats to player average ± 20%
-        const variance = rnd(-20, 20);
-        const target = Math.max(30, Math.min(90, playerAvg - 20 + variance));
-        const stats = { rizz: target + rnd(-10,10), sigma: target + rnd(-10,10), brainrot: target + rnd(-10,10) };
+        const base = Math.max(30, Math.min(95, Math.round((playerAvg - 20) * diff) + rnd(-15, 15)));
+        const stats = { rizz: base + rnd(-10,10), sigma: base + rnd(-10,10), brainrot: base + rnd(-10,10) };
         const card = { ...c, stats, imgUrl: c.image };
         return { ...card, hp: cardHP(card), maxHp: cardHP(card), atk: cardAtk(card), alive: true };
     });
@@ -2358,6 +2388,8 @@ function startBattle() {
     closeBattleSelect();
     document.getElementById('battleOverlay').classList.add('show');
     AudioEngine.play('craft');
+    const rank = getMilitaryRank();
+    document.getElementById('battleRankDisplay').textContent = `${rank.icon} ${rank.name} | 🏆 ${state.trophies||0}`;
     battleLog('Csata indul! Válaszd ki a támadó kártyádat!');
     renderBattle();
 }
@@ -2472,8 +2504,9 @@ function fireProjectile(fromId, toId, emoji, callback) {
 }
 
 function calcDamage(attacker, defender) {
-    const base = attacker.atk + rnd(3, 12);
-    const defense = Math.floor(defender.atk * 0.3);
+    const hpRatio = attacker.hp / attacker.maxHp; // 0-1, lower HP = weaker attack
+    const base = Math.round(attacker.atk * (0.4 + 0.6 * hpRatio)) + rnd(3, 12);
+    const defense = Math.floor(defender.atk * 0.3 * (defender.hp / defender.maxHp));
     return Math.max(1, base - defense + rnd(-3, 3));
 }
 
@@ -2486,21 +2519,31 @@ function checkBattleEnd() {
         battleState.winner = playerAlive ? 'player' : 'enemy';
         logEvent('battle', {
             result: battleState.winner,
+            survived: battleState.player.filter(c=>c.alive).length,
+            difficulty: Math.round((state.battleDifficulty||1)*100)/100,
             player: battleState.player.map(c=>({name:c.name, hp:c.hp, maxHp:c.maxHp, alive:c.alive})),
             enemy: battleState.enemy.map(c=>({name:c.name, hp:c.hp, maxHp:c.maxHp, alive:c.alive}))
         });
+        const survivingCards = battleState.player.filter(c => c.alive).length;
         if (playerAlive) {
             AudioEngine.play('reward');
-            state.talpieres += 5;
-            saveState(); updateTokenDisplay();
+            state.trophies = (state.trophies || 0) + 1;
+            // Difficulty scales up if easy win (2-3 cards survived)
+            if (survivingCards >= 3) state.battleDifficulty = Math.min(2.0, (state.battleDifficulty||1) + 0.15);
+            else if (survivingCards >= 2) state.battleDifficulty = Math.min(2.0, (state.battleDifficulty||1) + 0.05);
+            const rank = getMilitaryRank();
             setTimeout(createConfetti, 300);
-            battleLog('<b style="color:var(--neon-lime)">Győzelem! Brainrotjaid diadalmaskodtak!</b>');
-            battleLog('Jutalom: <span class="log-dmg">+5🪙</span>');
-            document.getElementById('battlePhaseHint').innerHTML = '<div style="font-size:1.4rem;color:var(--neon-lime);margin:12px 0">🏆 GYŐZELEM! +5🪙</div><div style="color:var(--text-dim);font-size:0.85rem">Visszatérés 5 másodperc...</div>';
+            battleLog(`<b style="color:var(--neon-lime)">Győzelem!</b>`);
+            battleLog(`Jutalom: <span class="log-dmg">🏆 +1 serleg</span> (Összesen: ${state.trophies})`);
+            battleLog(`Rang: ${rank.icon} <b>${rank.name}</b>`);
+            document.getElementById('battlePhaseHint').innerHTML = `<div style="font-size:1.4rem;color:var(--neon-lime);margin:12px 0">🏆 GYŐZELEM!</div><div style="font-size:1.1rem;color:var(--neon-gold);margin:4px 0">${rank.icon} ${rank.name}</div><div style="font-size:0.9rem;color:var(--text)">Serlegek: ${state.trophies}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">Visszatérés 5 mp...</div>`;
         } else {
             AudioEngine.play('wrong');
+            // Difficulty scales down on loss
+            state.battleDifficulty = Math.max(0.5, (state.battleDifficulty||1) - 0.15);
+            const rank = getMilitaryRank();
             battleLog('<b style="color:var(--neon-mag)">Vereség! Az ellenfél erősebb volt.</b>');
-            document.getElementById('battlePhaseHint').innerHTML = '<div style="font-size:1.4rem;color:var(--neon-mag);margin:12px 0">💀 VERESÉG!</div><div style="color:var(--text-dim);font-size:0.85rem">Visszatérés 5 másodperc...</div>';
+            document.getElementById('battlePhaseHint').innerHTML = `<div style="font-size:1.4rem;color:var(--neon-mag);margin:12px 0">💀 VERESÉG!</div><div style="font-size:0.9rem;color:var(--text-dim)">Rang: ${rank.icon} ${rank.name}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">Visszatérés 5 mp...</div>`;
         }
         // Mark player's battle cards as exhausted (5 correct answers to recover)
         if (battleState.selectedIndices) {
