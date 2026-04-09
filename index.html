@@ -2067,11 +2067,35 @@ function renderRodProblem() {
             html += `<div class="rod-row">${makeRod(a)}${makeRod(toTen)}${makeRod(rest)}</div>`;
         }
         html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(rest)}</div>`;
+    } else if (op === '+' && aIsQ && result > 10 && b <= 10) {
+        // Missing first operand, result > 10: ? + 4 = 12
+        // Row 1: [?][4]
+        // Row 2: [?][2][2]  (split b: over10 part + rest)
+        // Row 3: [10][2]
+        const over10 = result - 10; // part of b that goes above 10
+        const toTen = b - over10;   // part of b that fills to 10
+        html += `<div class="rod-row">${makeRodMystery(a)}${makeRod(b)}</div>`;
+        if (over10 > 0 && toTen > 0) {
+            html += `<div class="rod-row">${makeRodMystery(a)}${makeRod(toTen)}${makeRod(over10)}</div>`;
+        }
+        html += `<div class="rod-row">${makeRod(10)}${makeRod(over10)}</div>`;
+    } else if (op === '+' && bIsQ && result > 10 && a <= 10) {
+        // Missing second operand: 8 + ? = 13
+        // Row 1: [8][?]
+        // Row 2: [8][2][3]
+        // Row 3: [10][3]
+        const over10 = result - 10;
+        const toTen = 10 - a;
+        html += `<div class="rod-row">${makeRod(a)}${makeRodMystery(b)}</div>`;
+        if (toTen > 0 && over10 > 0) {
+            html += `<div class="rod-row">${makeRod(a)}${makeRod(toTen)}${makeRod(over10)}</div>`;
+        }
+        html += `<div class="rod-row">${makeRod(10)}${makeRod(over10)}</div>`;
     } else {
-        // Simple problems (result <= 10 or missing operand)
-        const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
-        const rodB = bIsQ ? makeRodMystery(b) : renderRodNumber(b);
-        const rodR = rIsQ ? makeRodMystery(result) : renderRodNumber(result);
+        // Simple problems (result <= 10)
+        const rodA = aIsQ ? makeRodMystery(a) : makeRod(a);
+        const rodB = bIsQ ? makeRodMystery(b) : makeRod(b);
+        const rodR = rIsQ ? makeRodMystery(result) : makeRod(result);
 
         html += `<div class="rod-row">${rodA}${rodB}</div>`;
         html += `<div class="rod-row">${rodR}</div>`;
