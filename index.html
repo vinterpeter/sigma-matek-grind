@@ -1201,7 +1201,6 @@
     <div class="hint-modal">
         <div class="hint-title">🧮 Számolórudak</div>
         <div id="hintRodContent"></div>
-        <div class="hint-title" style="font-size:0.8rem;margin-top:14px">Jelmagyarázat</div>
         <div class="rod-legend" id="rodLegend"></div>
         <button class="dc-close" onclick="closeHint()" style="margin-top:12px;display:block;margin-left:auto;margin-right:auto">Bezárás</button>
     </div>
@@ -1977,59 +1976,59 @@ function showHint() {
 
     content.innerHTML = html;
 
-    // Render legend
+    // Render legend as example combinations
     const legend = document.getElementById('rodLegend');
-    legend.innerHTML = '';
-    for (let i = 1; i <= 10; i++) {
-        legend.innerHTML += `<div class="rod-legend-item">${makeRod(i)}<div class="rod-val">${i} - ${rodNames[i]}</div></div>`;
+    let lhtml = '';
+    for (let i = 1; i <= 20; i++) {
+        lhtml += `<div class="rod-legend-item">${renderRodNumber(i)}<div class="rod-val">${i}</div></div>`;
     }
+    legend.innerHTML = lhtml;
 
     document.getElementById('hintOverlay').classList.add('show');
 }
 
 function closeHint() { document.getElementById('hintOverlay').classList.remove('show'); }
 
+function makeRodMystery(n) {
+    return `<div class="rod" style="width:${n*28}px;background:#555;border:2px dashed #888">?</div>`;
+}
+
 function renderRodProblem() {
-    // Try to figure out the problem from the display
     const probText = document.getElementById('problem').textContent.trim();
     const parts = probText.match(/(\d+|[?])\s*([+−])\s*(\d+|[?])\s*=\s*(\d+|[?])/);
     if (!parts) {
-        // Fallback: just show the answer as a rod
         if (currentAnswer >= 1 && currentAnswer <= 20) {
-            let html = '<div style="text-align:center;color:var(--text);margin:8px 0">A helyes válasz ilyen hosszú:</div>';
-            html += '<div class="rod-row" style="justify-content:center">' + renderRodNumber(currentAnswer) + '</div>';
-            return html;
+            return `<div class="rod-row">${makeRodMystery(currentAnswer)}<div class="rod-label">?</div></div>`;
         }
-        return '<div style="text-align:center;color:var(--text-dim)">Gondolkodj a számolórudakkal!</div>';
+        return '';
     }
 
-    const a = parts[1] === '?' ? currentAnswer : parseInt(parts[1]);
+    const aIsQ = parts[1] === '?', bIsQ = parts[3] === '?', rIsQ = parts[4] === '?';
+    const a = aIsQ ? currentAnswer : parseInt(parts[1]);
     const op = parts[2];
-    const b = parts[3] === '?' ? currentAnswer : parseInt(parts[3]);
-    const result = parts[4] === '?' ? currentAnswer : parseInt(parts[4]);
+    const b = bIsQ ? currentAnswer : parseInt(parts[3]);
+    const result = rIsQ ? currentAnswer : parseInt(parts[4]);
 
     let html = '';
-    if (op === '+') {
-        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
-        html += `<div class="rod-row"><div class="rod-op">+</div></div>`;
-        html += `<div class="rod-row">${renderRodNumber(b)}<div class="rod-label">${b}</div></div>`;
-        html += `<div class="rod-eq">= együttvéve:</div>`;
-        html += `<div class="rod-row">${renderRodNumber(result)}<div class="rod-label">${result}</div></div>`;
-    } else {
-        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
-        html += `<div class="rod-row"><div class="rod-op">−</div></div>`;
-        html += `<div class="rod-row">${renderRodNumber(b)}<div class="rod-label">${b}</div></div>`;
-        html += `<div class="rod-eq">= ami marad:</div>`;
-        html += `<div class="rod-row">${renderRodNumber(result)}<div class="rod-label">${result}</div></div>`;
-    }
+    const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
+    const rodB = bIsQ ? makeRodMystery(b) : renderRodNumber(b);
+    const rodR = rIsQ ? makeRodMystery(result) : renderRodNumber(result);
+    const lblA = aIsQ ? '?' : a;
+    const lblB = bIsQ ? '?' : b;
+    const lblR = rIsQ ? '?' : result;
+
+    html += `<div class="rod-row">${rodA}<div class="rod-label">${lblA}</div></div>`;
+    html += `<div class="rod-row"><div class="rod-op">${op}</div></div>`;
+    html += `<div class="rod-row">${rodB}<div class="rod-label">${lblB}</div></div>`;
+    html += `<div class="rod-row"><div class="rod-op">=</div></div>`;
+    html += `<div class="rod-row">${rodR}<div class="rod-label">${lblR}</div></div>`;
     return html;
 }
 
 function renderRodNumber(n) {
     if (n <= 0) return makeRod(0);
     if (n <= 10) return makeRod(n);
-    // Numbers 11-20: show as 10 + remainder
-    return makeRod(10) + `<span style="margin:0 2px;color:var(--text-dim)">+</span>` + makeRod(n - 10);
+    return makeRod(10) + makeRod(n - 10);
 }
 
 function renderRodComparison(a, b) {
