@@ -2006,10 +2006,18 @@ function showHint() {
             }
         }
         if (inp >= 0 && rule !== 0) {
-            const op = rule > 0 ? '+' : '−';
             const absRule = Math.abs(rule);
-            html = `<div style="text-align:center;color:var(--text);margin:8px 0;font-size:0.9rem">${inp} ${op} ${absRule} = ?</div>`;
-            html += renderRodEquation(rule > 0 ? inp : inp, op, absRule, currentAnswer);
+            if (rule > 0) {
+                // Addition: show input rods + mystery rule rod, then result as mystery
+                // e.g. 12 + 1: [10][2][?] / [10][?][?]
+                html += `<div class="rod-row">${renderRodNumber(inp)}${makeRodMystery(absRule)}</div>`;
+                html += `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+            } else {
+                // Subtraction: show input rods, then mystery result + rule rod
+                // e.g. 18 - 2: [10][8] / [?][?][2]
+                html += `<div class="rod-row">${renderRodNumber(inp)}</div>`;
+                html += `<div class="rod-row">${makeRodMystery(currentAnswer)}${makeRod(absRule)}</div>`;
+            }
         } else {
             html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
         }
@@ -2032,9 +2040,14 @@ function showHint() {
                 }
             }
             if (before >= 0) {
-                const op = step > 0 ? '+' : '−';
-                html = `<div style="text-align:center;color:var(--text);margin:8px 0;font-size:0.9rem">${before} ${op} ${Math.abs(step)} = ?</div>`;
-                html += renderRodEquation(step > 0 ? before : before, op, Math.abs(step), currentAnswer);
+                const absStep = Math.abs(step);
+                if (step > 0) {
+                    html += `<div class="rod-row">${renderRodNumber(before)}${makeRodMystery(absStep)}</div>`;
+                    html += `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+                } else {
+                    html += `<div class="rod-row">${renderRodNumber(before)}</div>`;
+                    html += `<div class="rod-row">${makeRodMystery(currentAnswer)}${makeRod(absStep)}</div>`;
+                }
             } else {
                 html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
             }
