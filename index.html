@@ -1115,6 +1115,7 @@
         <div class="admin-tabs">
             <button class="admin-tab active" onclick="showAdminTab('summary')">Összesítés</button>
             <button class="admin-tab" onclick="showAdminTab('answers')">Válaszok</button>
+            <button class="admin-tab" onclick="showAdminTab('cards')">Kártyák</button>
             <button class="admin-tab" onclick="showAdminTab('battles')">Csaták</button>
             <button class="admin-tab" onclick="showAdminTab('creations')">Alkotások</button>
             <button class="admin-tab" onclick="showAdminTab('all')">Minden</button>
@@ -2812,7 +2813,7 @@ function getAdminPlayerData() {
 
 function showAdminTab(tab) {
     adminCurrentTab = tab;
-    const tabs = ['summary','answers','battles','creations','all'];
+    const tabs = ['summary','answers','cards','battles','creations','all'];
     document.querySelectorAll('.admin-tab').forEach((t,i) => {
         t.classList.toggle('active', tabs[i] === tab);
     });
@@ -2866,6 +2867,31 @@ function showAdminTab(tab) {
         c.innerHTML = backBtn + `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Feladat</th><th>Válasz</th><th>Helyes</th><th>Idő</th></tr></thead><tbody>
             ${answers.map(a => `<tr><td>${fmtTime(a.t)}</td><td>${typeNames[a.type]||a.type||''}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.problem||''}</td><td>${a.answer}</td><td class="${a.correct?'admin-correct':'admin-wrong'}">${a.correct?'✅':'❌'} ${!a.correct?'(→'+a.expected+')':''}</td><td>${a.fast?'⚡':''}${Math.round((a.ms||0)/100)/10}s</td></tr>`).join('')}
         </tbody></table>`;
+    } else if (tab === 'cards') {
+        const col = p.collection || [];
+        if (col.length === 0) {
+            c.innerHTML = backBtn + '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nincs kártya</div>';
+        } else {
+            const byCategory = {};
+            col.forEach(card => {
+                const cat = card.category || 'egyéb';
+                if (!byCategory[cat]) byCategory[cat] = [];
+                byCategory[cat].push(card);
+            });
+            const catNames = {classic:'🧠 Classic',italian:'🇮🇹 Italian',fusion:'🔬 Keverés',egyéb:'❓ Egyéb'};
+            let html = backBtn + `<div style="margin-bottom:8px;font-size:0.85rem;color:var(--text-dim)">Összesen: ${col.length} kártya</div>`;
+            Object.entries(byCategory).forEach(([cat, cards]) => {
+                html += `<div style="color:var(--neon-cyan);font-size:0.8rem;font-weight:700;margin:10px 0 4px">${catNames[cat]||cat} (${cards.length})</div>`;
+                html += `<table class="admin-table"><thead><tr><th>Név</th><th>Ritkaság</th><th>⚔️</th><th>Rizz</th><th>Sigma</th><th>Brain</th><th>😴</th></tr></thead><tbody>`;
+                cards.forEach(card => {
+                    const s = card.stats || {};
+                    const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+                    html += `<tr><td>${card.name||'?'}</td><td><span class="${card.rarityClass||''}">${card.rarity||'?'}</span></td><td>${power}</td><td>${s.rizz||'?'}</td><td>${s.sigma||'?'}</td><td>${s.brainrot||'?'}</td><td>${card.exhausted?'😴'+card.exhausted:'✅'}</td></tr>`;
+                });
+                html += '</tbody></table>';
+            });
+            c.innerHTML = html;
+        }
     } else if (tab === 'battles') {
         const battles = log.filter(e => e.evType === 'battle').reverse();
         c.innerHTML = backBtn + (battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
@@ -2899,10 +2925,17 @@ function showAdminTab(tab) {
 function getCardImage(item) {
     if (item.imgUrl) return item.imgUrl;
     if (item.image) return item.image;
-    // Fallback: find original card image by id
     const orig = allBrainrotCards.find(c => c.id === item.id);
     if (orig && orig.image) return orig.image;
     if (item.prompt) return pollinationsUrl(item.prompt, item._seed || 0);
+    return '';
+}
+
+function getCardStory(item) {
+    if (item.story) return item.story;
+    if (item.flavor) return item.flavor;
+    const orig = allBrainrotCards.find(c => c.id === item.id);
+    if (orig && orig.story) return orig.story;
     return '';
 }
 
@@ -2934,7 +2967,7 @@ function showDetail(idx) {
     const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
     const exhaustedText = item.exhausted ? `<span class="dc-stat" style="color:var(--neon-orange)">😴 Kimerült (${item.exhausted} válasz múlva kész)</span>` : '<span class="dc-stat" style="color:var(--neon-lime)">✅ Pihent</span>';
     document.getElementById('dcStats').innerHTML=`<span class="dc-stat">⚔️ Erő: ${power}</span><span class="dc-stat">😎 Rizz: ${s.rizz||'?'}</span><span class="dc-stat">🗿 Sigma: ${s.sigma||'?'}</span><span class="dc-stat">🧠 Brainrot: ${s.brainrot||'?'}</span>${exhaustedText}`;
-    document.getElementById('dcFlavor').textContent=item.story||item.flavor||'';
+    document.getElementById('dcFlavor').textContent=getCardStory(item);
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); if(window.speechSynthesis.speaking) window.speechSynthesis.cancel(); }
