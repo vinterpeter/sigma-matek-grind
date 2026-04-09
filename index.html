@@ -1233,14 +1233,22 @@ function initFirebase() {
 
 function saveStateToCloud() {
     if (!fbReady || !db || !fbUser) return;
-    const data = { ...state, badges: Array.from(state.badges), updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-    db.collection('users').doc(fbUser.uid).set(data, { merge: true }).catch(e => console.warn('Cloud save failed:', e));
+    // Save main state (without heavy fields) to main doc
+    const { collection, eventLog, ...lite } = state;
+    const mainData = { ...lite, badges: Array.from(state.badges), collectionCount: (collection||[]).length, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
+    db.collection('users').doc(fbUser.uid).set(mainData, { merge: true }).catch(e => console.warn('Cloud save (main) failed:', e));
+    // Save eventLog separately (last 200 to fit Firestore limits)
+    const trimmedLog = (eventLog||[]).slice(-200);
+    db.collection('users').doc(fbUser.uid).collection('data').doc('eventLog').set({ events: trimmedLog }).catch(e => console.warn('Cloud save (log) failed:', e));
+    // Save collection separately
+    const safeCollection = (collection||[]).map(c => ({ id:c.id, name:c.name, rarity:c.rarity, category:c.category, stats:c.stats, exhausted:c.exhausted||0 }));
+    db.collection('users').doc(fbUser.uid).collection('data').doc('collection').set({ cards: safeCollection }).catch(e => console.warn('Cloud save (collection) failed:', e));
 }
 
 let gameStarted = false;
 function loadStateFromCloud() {
     if (!fbReady || !db || !fbUser) return;
-    db.collection('users').doc(fbUser.uid).get().then(doc => {
+    db.collection('users').doc(fbUser.uid).get().then(async doc => {
         if (doc.exists && !gameStarted) {
             const p = doc.data();
             const localTotal = state.total || 0;
@@ -1248,11 +1256,21 @@ function loadStateFromCloud() {
             if (cloudTotal >= localTotal) {
                 Object.assign(state, p);
                 state.badges = new Set(p.badges || []);
-                state.collection = p.collection || [];
                 state.tokens = p.tokens || 0;
                 state.correctSinceLastReward = p.correctSinceLastReward || 0;
                 state.nextRewardAt = p.nextRewardAt || randReward();
                 state.talpieres = p.talpieres || 0;
+                // Load subcollections
+                try {
+                    const logDoc = await db.collection('users').doc(fbUser.uid).collection('data').doc('eventLog').get();
+                    if (logDoc.exists) state.eventLog = logDoc.data().events || [];
+                } catch(e) {}
+                try {
+                    const colDoc = await db.collection('users').doc(fbUser.uid).collection('data').doc('collection').get();
+                    if (colDoc.exists && colDoc.data().cards) state.collection = colDoc.data().cards;
+                } catch(e) {}
+                if (!state.collection) state.collection = [];
+                if (!state.eventLog) state.eventLog = [];
                 console.log('State loaded from cloud');
             }
         }
@@ -2716,21 +2734,34 @@ const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Soroz
 function loadAllPlayers() {
     const c = document.getElementById('adminContent');
     c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim)">Játékosok betöltése...</div>';
+    // Always include local player with full data
+    const localPlayer = { uid: 'local', ...JSON.parse(JSON.stringify(state)), badges: Array.from(state.badges), _local: true };
     if (db) {
-        db.collection('users').get().then(snap => {
-            adminPlayers = [];
-            snap.forEach(doc => adminPlayers.push({ uid: doc.id, ...doc.data() }));
-            // Also add local player if not in Firebase
-            if (!adminPlayers.find(p => p.uid === (fbUser?.uid))) {
-                adminPlayers.unshift({ uid: 'local', ...state, _local: true });
+        db.collection('users').get().then(async snap => {
+            adminPlayers = [localPlayer];
+            for (const doc of snap.docs) {
+                const p = { uid: doc.id, ...doc.data() };
+                // Load eventLog subcollection
+                try {
+                    const logDoc = await db.collection('users').doc(doc.id).collection('data').doc('eventLog').get();
+                    if (logDoc.exists) p.eventLog = logDoc.data().events || [];
+                } catch(e) {}
+                // Load collection subcollection
+                try {
+                    const colDoc = await db.collection('users').doc(doc.id).collection('data').doc('collection').get();
+                    if (colDoc.exists) p.collection = colDoc.data().cards || [];
+                } catch(e) {}
+                if (!p.eventLog) p.eventLog = [];
+                if (!p.collection) p.collection = [];
+                if (doc.id !== 'local') adminPlayers.push(p);
             }
             renderAdminPlayerList();
         }).catch(() => {
-            adminPlayers = [{ uid: 'local', ...state, _local: true }];
+            adminPlayers = [localPlayer];
             renderAdminPlayerList();
         });
     } else {
-        adminPlayers = [{ uid: 'local', ...state, _local: true }];
+        adminPlayers = [localPlayer];
         renderAdminPlayerList();
     }
 }
