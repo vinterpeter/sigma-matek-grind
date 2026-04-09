@@ -1587,6 +1587,14 @@ function loadState() {
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
     } else { localStorage.setItem('sigmaDay3', new Date().toDateString()); state.nextRewardAt = randReward(); }
+    // Migrate old cards: add hp/attack/defense from rizz/sigma/brainrot
+    state.collection.forEach(c => {
+        if (!c.stats) c.stats = {};
+        const s = c.stats;
+        if (!s.hp) s.hp = Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 3);
+        if (!s.attack) s.attack = Math.round(((s.rizz||50) + (s.sigma||50)) / 5);
+        if (!s.defense) s.defense = Math.round(((s.sigma||50) + (s.brainrot||50)) / 6);
+    });
 }
 function randReward() { return 5 + Math.floor(Math.random()*6); }
 
