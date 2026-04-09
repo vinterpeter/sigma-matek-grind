@@ -1281,11 +1281,8 @@ try { initFirebase(); } catch(e) {}
 // ==================== EVENT LOG ====================
 function logEvent(type, data) {
     if (!state.eventLog) state.eventLog = [];
-    const entry = { t: Date.now(), type, ...data };
-    state.eventLog.push(entry);
+    state.eventLog.push({ t: Date.now(), type, ...data });
     if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
-    try { localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)})); } catch(e) {}
-    console.log('[LOG]', type, entry);
 }
 
 // ==================== POLLINATIONS API ====================
@@ -1434,9 +1431,12 @@ const streakMessages = {3:"🔥 3x STREAK!",5:"💥 5x UNSTOPPABLE!",7:"⚡ 7x S
 const streakVoices = {3:"Három egymás után!",5:"Öt streak! Megállíthatatlan!",7:"Hét! Sigma mód!",10:"Tízes streak! Gigachad!",15:"Tizenöt! Legendás!",20:"Húsz! Isten szint!"};
 
 // ==================== SAVE/LOAD ====================
+let _cloudSaveTimer = null;
 function saveState() {
-    localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)}));
-    saveStateToCloud();
+    try { localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)})); } catch(e) { console.warn('localStorage save failed:', e); }
+    // Debounce cloud save (max every 5s)
+    clearTimeout(_cloudSaveTimer);
+    _cloudSaveTimer = setTimeout(saveStateToCloud, 5000);
 }
 function loadState() {
     const d = localStorage.getItem('sigmaMatek3');
@@ -1846,7 +1846,7 @@ function processAnswer(answer) {
         const msg=wrongMessages[Math.floor(Math.random()*wrongMessages.length)];
         showFeedback(msg.text,msg.color);
     }
-    updateStats(); updateTokenDisplay(); checkBadges(); checkDaily(); saveState();
+    try { updateStats(); updateTokenDisplay(); checkBadges(); checkDaily(); saveState(); } catch(e) { console.error('processAnswer error:', e); }
     setTimeout(()=>generateProblem(),1600);
 }
 
@@ -2704,7 +2704,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function openAdmin() {
-    loadState(); // Always refresh from localStorage
     document.getElementById('adminOverlay').classList.add('show');
     adminSelectedUid = null;
     loadAllPlayers();
