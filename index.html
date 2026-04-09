@@ -2034,9 +2034,15 @@ function renderRodProblem() {
     } else if (op === '+' && !aIsQ && !bIsQ && result > 10) {
         // Addition crossing 10: e.g. 6 + 7 = 13
         // Row 1: [6][7]
-        // Row 2: [10][?]
+        // Row 2: [6][4][3]  — split b into (10-a) + rest
+        // Row 3: [10][?]
+        const toTen = 10 - a; // how much of b fills to 10
+        const rest = b - toTen; // remainder after 10
         html += `<div class="rod-row">${makeRod(a)}<div class="rod-label">${a}</div>${makeRod(b)}<div class="rod-label">${b}</div></div>`;
-        html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result - 10)}<div class="rod-label">?</div></div>`;
+        if (toTen > 0 && rest > 0) {
+            html += `<div class="rod-row">${makeRod(a)}<div class="rod-label">${a}</div>${makeRod(toTen)}<div class="rod-label">${toTen}</div>${makeRod(rest)}<div class="rod-label">${rest}</div></div>`;
+        }
+        html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(rest)}<div class="rod-label">?</div></div>`;
     } else {
         // Simple problems (result <= 10 or missing operand)
         const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
