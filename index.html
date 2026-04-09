@@ -1111,7 +1111,7 @@
         <div class="dc-flavor" id="dcFlavor"></div>
         <button class="story-read-btn" id="dcReadBtn" onclick="readDetailStory()" style="margin:8px auto 0;display:inline-flex"><span id="dcReadIcon">🔊</span> Felolvasás</button>
         <br>
-        <button class="dc-close" id="dcUpgradeBtn" onclick="openUpgrade()" style="border-color:var(--neon-purple);color:var(--neon-purple);margin-top:6px">🛡️ Fejlesztés (5🪙)</button>
+        <button class="dc-close" id="dcUpgradeBtn" onclick="openUpgrade()" style="border-color:var(--neon-purple);color:var(--neon-purple);margin-top:6px">🛡️ Fejlesztés</button>
         <button class="dc-close" onclick="closeDetail()">Bezárás</button>
         <button class="dc-close" id="dcDeleteBtn" onclick="deleteFromCollection()" style="border-color:var(--neon-mag);color:var(--neon-mag);margin-top:6px">Törlés 🗑️</button>
     </div>
@@ -2331,7 +2331,7 @@ function showBrainrotReward() {
         rarityClass: 'rarity-' + card.rarity.toLowerCase(),
         category: card.category, story: card.story,
         imgUrl: imgUrl, image: card.image, prompt: card.prompt, _seed: seed,
-        stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91) }
+        stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) }
     };
     if(card.rarity==='Epic') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+15));
     if(card.rarity==='Legendary') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+30));
@@ -2802,12 +2802,17 @@ let battleState = null;
 
 function cardHP(card) {
     const s = card.stats || {};
-    return Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 3) + 20;
+    return (s.hp || Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 3)) + 20;
 }
 
 function cardAtk(card) {
     const s = card.stats || {};
-    return Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 6);
+    return s.attack || Math.round(((s.rizz||50) + (s.sigma||50)) / 5);
+}
+
+function cardDef(card) {
+    const s = card.stats || {};
+    return s.defense || Math.round(((s.sigma||50) + (s.brainrot||50)) / 6);
 }
 
 function openBattleSelect() {
@@ -2848,7 +2853,7 @@ function startBattle() {
 
     const playerCards = battleState.selectedIndices.map(i => {
         const c = state.collection[i];
-        return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), alive: true };
+        return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), def: cardDef(c), alive: true };
     });
 
     // Enemy: 3 cards scaled by difficulty, excluding player's picks
@@ -2861,7 +2866,7 @@ function startBattle() {
         const base = Math.max(30, Math.min(95, Math.round((playerAvg - 20) * diff) + rnd(-15, 15)));
         const stats = { rizz: base + rnd(-10,10), sigma: base + rnd(-10,10), brainrot: base + rnd(-10,10) };
         const card = { ...c, stats, imgUrl: c.image };
-        return { ...card, hp: cardHP(card), maxHp: cardHP(card), atk: cardAtk(card), alive: true };
+        return { ...card, hp: cardHP(card), maxHp: cardHP(card), atk: cardAtk(card), def: cardDef(card), alive: true };
     });
 
     battleState = {
@@ -2994,10 +2999,10 @@ function fireProjectile(fromId, toId, emoji, callback) {
 }
 
 function calcDamage(attacker, defender) {
-    const hpRatio = attacker.hp / attacker.maxHp; // 0-1, lower HP = weaker attack
-    const base = Math.round(attacker.atk * (0.4 + 0.6 * hpRatio)) + rnd(3, 12);
-    const defense = Math.floor(defender.atk * 0.3 * (defender.hp / defender.maxHp));
-    return Math.max(1, base - defense + rnd(-3, 3));
+    const hpRatio = attacker.hp / attacker.maxHp;
+    const base = Math.round(attacker.atk * (0.4 + 0.6 * hpRatio)) + rnd(3, 10);
+    const def = Math.floor((defender.def || 0) * (0.3 + 0.7 * (defender.hp / defender.maxHp)));
+    return Math.max(1, base - def + rnd(-2, 2));
 }
 
 function checkBattleEnd() {
@@ -3163,7 +3168,7 @@ function openShop() {
                 rarityClass: 'rarity-' + card.rarity.toLowerCase(),
                 category: card.category, story: card.story,
                 imgUrl: card.image, image: card.image, prompt: card.prompt, _seed: seed,
-                stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91) }
+                stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) }
             };
             state.collection.push(collectionCard);
             saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
@@ -3451,7 +3456,8 @@ function renderCollection() {
         const catBadge = item.category==='italian'?'🇮🇹':item.category==='fusion'?'🔬':'🧠';
         const s = item.stats || {};
         const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
-        el.innerHTML=`<img class="ci-img" src="${imgSrc}" alt="${item.name}" loading="lazy"><div class="ci-name">${catBadge} ${item.name.split(' ').slice(0,2).join(' ')}</div><div class="ci-rarity ${item.rarityClass}">★ ${item.rarity}</div><div class="ci-power">⚔️ ${power}</div>`;
+        const atk = item.stats?.attack || '?', def = item.stats?.defense || '?', hp = item.stats?.hp || '?';
+        el.innerHTML=`<img class="ci-img" src="${imgSrc}" alt="${item.name}" loading="lazy"><div class="ci-name">${catBadge} ${item.name.split(' ').slice(0,2).join(' ')}</div><div class="ci-rarity ${item.rarityClass}">★ ${item.rarity}</div><div class="ci-power">❤️${hp} ⚔️${atk} 🛡️${def}</div>`;
         el.onclick=()=>showDetail(idx); grid.appendChild(el);
     });
 }
@@ -3466,10 +3472,10 @@ function showDetail(idx) {
     const s = item.stats || {};
     const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
     const exhaustedText = item.exhausted ? `<span class="dc-stat" style="color:var(--neon-orange)">😴 Kimerült (${item.exhausted} válasz múlva kész)</span>` : '<span class="dc-stat" style="color:var(--neon-lime)">✅ Pihent</span>';
-    document.getElementById('dcStats').innerHTML=`<span class="dc-stat">⚔️ Erő: ${power}</span><span class="dc-stat">😎 Rizz: ${s.rizz||'?'}</span><span class="dc-stat">🗿 Sigma: ${s.sigma||'?'}</span><span class="dc-stat">🧠 Brainrot: ${s.brainrot||'?'}</span>${exhaustedText}`;
+    document.getElementById('dcStats').innerHTML=`<span class="dc-stat">❤️ HP: ${s.hp||'?'}</span><span class="dc-stat">⚔️ Támadás: ${s.attack||'?'}</span><span class="dc-stat">🛡️ Védelem: ${s.defense||'?'}</span>${exhaustedText}`;
     document.getElementById('dcFlavor').textContent=getCardStory(item);
-    document.getElementById('dcUpgradeBtn').disabled = state.talpieres < 5;
-    document.getElementById('dcUpgradeBtn').style.opacity = state.talpieres < 5 ? '0.4' : '1';
+    document.getElementById('dcUpgradeBtn').disabled = state.talpieres < 2;
+    document.getElementById('dcUpgradeBtn').style.opacity = state.talpieres < 2 ? '0.4' : '1';
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); if(window.speechSynthesis.speaking) window.speechSynthesis.cancel(); }
@@ -3501,24 +3507,29 @@ function deleteFromCollection() {
 
 // ==================== UPGRADE SYSTEM ====================
 const upgradeItems = [
-    { id:'sword',  name:'Kard',       emoji:'🗡️', stat:'sigma',   boost:15, prompt:'wielding a glowing sword' },
-    { id:'shield', name:'Pajzs',      emoji:'🛡️', stat:'brainrot',boost:15, prompt:'holding a magical shield' },
-    { id:'crown',  name:'Korona',     emoji:'👑', stat:'rizz',    boost:15, prompt:'wearing a golden crown' },
-    { id:'rocket', name:'Rakéta',     emoji:'🚀', stat:'sigma',   boost:20, prompt:'riding a rocket' },
-    { id:'wings',  name:'Szárnyak',   emoji:'🪽', stat:'rizz',    boost:18, prompt:'with giant angel wings flying' },
-    { id:'fire',   name:'Tűzerő',     emoji:'🔥', stat:'brainrot',boost:20, prompt:'surrounded by fire and flames' },
-    { id:'ice',    name:'Jégpáncél',  emoji:'🧊', stat:'brainrot',boost:18, prompt:'covered in ice armor crystal' },
-    { id:'laser',  name:'Lézer',      emoji:'⚡', stat:'sigma',   boost:22, prompt:'shooting laser beams from eyes' },
-    { id:'robot',  name:'Robot páncél',emoji:'🤖', stat:'brainrot',boost:25, prompt:'wearing a mech robot armor suit' },
-    { id:'magic',  name:'Varázserő',  emoji:'✨', stat:'rizz',    boost:20, prompt:'with magical sparkles and wand' },
-    { id:'ninja',  name:'Ninja maszk',emoji:'🥷', stat:'sigma',   boost:18, prompt:'wearing ninja outfit with stars' },
-    { id:'cape',   name:'Szuperhős köpeny',emoji:'🦸', stat:'rizz', boost:22, prompt:'wearing superhero cape flying' },
+    // Cheap (2-3🪙) — small boost or trade-offs
+    { id:'bandage', name:'Kötés',        emoji:'🩹', cost:2, mods:{hp:+10},                      prompt:'with bandages wrapped around' },
+    { id:'dagger',  name:'Tőr',          emoji:'🗡️', cost:2, mods:{attack:+3, defense:-1},        prompt:'holding a small dagger' },
+    { id:'helmet',  name:'Sisak',        emoji:'⛑️', cost:2, mods:{defense:+3, attack:-1},        prompt:'wearing a safety helmet' },
+    { id:'potion',  name:'Bájital',      emoji:'🧪', cost:3, mods:{hp:+8, attack:+2},             prompt:'drinking a magical potion' },
+    // Medium (4-6🪙) — solid boosts
+    { id:'sword',   name:'Kard',         emoji:'⚔️', cost:5, mods:{attack:+6},                    prompt:'wielding a glowing sword' },
+    { id:'shield',  name:'Pajzs',        emoji:'🛡️', cost:5, mods:{defense:+6},                   prompt:'holding a magical shield' },
+    { id:'heart',   name:'Élet kristály',emoji:'💎', cost:5, mods:{hp:+20},                       prompt:'glowing life crystal on chest' },
+    { id:'wings',   name:'Szárnyak',     emoji:'🪽', cost:4, mods:{attack:+3, defense:+3},        prompt:'with angel wings flying' },
+    { id:'fire',    name:'Tűzerő',       emoji:'🔥', cost:4, mods:{attack:+5, hp:-5},             prompt:'surrounded by fire and flames' },
+    { id:'ice',     name:'Jégpáncél',    emoji:'🧊', cost:4, mods:{defense:+5, attack:-2},        prompt:'covered in ice armor' },
+    // Expensive (7-10🪙) — big boosts
+    { id:'robot',   name:'Robot páncél',  emoji:'🤖', cost:8, mods:{hp:+15, defense:+5, attack:+3}, prompt:'wearing mech robot armor suit' },
+    { id:'laser',   name:'Lézer szem',   emoji:'⚡', cost:7, mods:{attack:+10},                   prompt:'shooting laser beams from eyes' },
+    { id:'cape',    name:'Szuperhős',    emoji:'🦸', cost:8, mods:{hp:+10, attack:+5, defense:+3}, prompt:'wearing superhero cape flying' },
+    { id:'crown',   name:'Arany korona', emoji:'👑', cost:10,mods:{hp:+20, attack:+5, defense:+5}, prompt:'wearing golden crown with jewels' },
 ];
 
 let upgradeTarget = null, upgradeItem = null, upgradeNewImgUrl = '';
 
 function openUpgrade() {
-    if (detailIdx < 0 || state.talpieres < 5) return;
+    if (detailIdx < 0 || state.talpieres < 2) return;
     const card = state.collection[detailIdx];
     upgradeTarget = detailIdx;
     closeDetail();
@@ -3526,10 +3537,17 @@ function openUpgrade() {
     const grid = document.getElementById('upgradeGrid');
     grid.innerHTML = '';
     upgradeItems.forEach(item => {
+        const canAfford = state.talpieres >= item.cost;
         const el = document.createElement('div');
         el.className = 'battle-select-card';
-        el.innerHTML = `<div style="font-size:2rem">${item.emoji}</div><div class="bsc-name">${item.name}</div><div style="font-size:0.5rem;color:var(--neon-lime)">+${item.boost} ${item.stat}</div>`;
-        el.onclick = () => startUpgrade(item);
+        el.style.opacity = canAfford ? '1' : '0.35';
+        let modsText = Object.entries(item.mods).map(([k,v]) => {
+            const icon = k==='hp'?'❤️':k==='attack'?'⚔️':'🛡️';
+            const col = v>0?'var(--neon-lime)':'var(--neon-mag)';
+            return `<span style="color:${col}">${icon}${v>0?'+':''}${v}</span>`;
+        }).join(' ');
+        el.innerHTML = `<div style="font-size:1.8rem">${item.emoji}</div><div class="bsc-name">${item.name}</div><div style="font-size:0.55rem;margin-top:2px">${modsText}</div><div style="font-size:0.6rem;color:var(--neon-gold);margin-top:2px">${item.cost}🪙</div>`;
+        if (canAfford) el.onclick = () => startUpgrade(item);
         grid.appendChild(el);
     });
     document.getElementById('upgradeOverlay').classList.add('show');
@@ -3544,7 +3562,7 @@ function startUpgrade(item) {
     closeUpgrade();
 
     // Deduct tallér
-    state.talpieres -= 5;
+    state.talpieres -= item.cost;
     saveState(); updateTokenDisplay();
 
     // Generate new image
@@ -3557,14 +3575,16 @@ function startUpgrade(item) {
     const oldImg = document.getElementById('upgradeOldImg');
     oldImg.src = getCardImage(card);
     const s = card.stats || {};
-    const oldPower = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
-    document.getElementById('upgradeOldStats').textContent = `⚔️ ${oldPower} | 😎${s.rizz||0} 🗿${s.sigma||0} 🧠${s.brainrot||0}`;
+    document.getElementById('upgradeOldStats').textContent = `❤️${s.hp||'?'} ⚔️${s.attack||'?'} 🛡️${s.defense||'?'}`;
 
     // New stats
     const newStats = { ...s };
-    newStats[item.stat] = Math.min(100, (newStats[item.stat]||50) + item.boost);
-    const newPower = Math.round(((newStats.rizz||0)+(newStats.sigma||0)+(newStats.brainrot||0))/3);
-    document.getElementById('upgradeNewStats').textContent = `⚔️ ${newPower} (+${newPower-oldPower}) | 😎${newStats.rizz||0} 🗿${newStats.sigma||0} 🧠${newStats.brainrot||0}`;
+    Object.entries(item.mods).forEach(([k,v]) => { newStats[k] = Math.max(1, (newStats[k]||10) + v); });
+    let diffText = Object.entries(item.mods).map(([k,v]) => {
+        const icon = k==='hp'?'❤️':k==='attack'?'⚔️':'🛡️';
+        return `${icon}${newStats[k]} (${v>0?'+':''}${v})`;
+    }).join(' ');
+    document.getElementById('upgradeNewStats').textContent = diffText;
 
     // Load new image
     const newImg = document.getElementById('upgradeNewImg');
