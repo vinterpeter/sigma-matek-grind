@@ -2031,16 +2031,19 @@ function renderRodProblem() {
                 html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label">?</div></div>`;
             }
         }
+    } else if (op === '+' && !aIsQ && !bIsQ && result > 10) {
+        // Addition crossing 10: e.g. 6 + 7 = 13
+        // Row 1: [6][7]
+        // Row 2: [10][?]
+        html += `<div class="rod-row">${makeRod(a)}<div class="rod-label">${a}</div>${makeRod(b)}<div class="rod-label">${b}</div></div>`;
+        html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result - 10)}<div class="rod-label">?</div></div>`;
     } else {
-        // Addition or simple problems
+        // Simple problems (result <= 10 or missing operand)
         const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
         const rodB = bIsQ ? makeRodMystery(b) : renderRodNumber(b);
         const rodR = rIsQ ? makeRodMystery(result) : renderRodNumber(result);
 
-        html += `<div class="rod-row">${rodA}<div class="rod-label">${aIsQ ? '?' : a}</div></div>`;
-        html += `<div class="rod-row"><div class="rod-op">${op}</div></div>`;
-        html += `<div class="rod-row">${rodB}<div class="rod-label">${bIsQ ? '?' : b}</div></div>`;
-        html += `<div class="rod-row"><div class="rod-op">=</div></div>`;
+        html += `<div class="rod-row">${rodA}<div class="rod-label">${aIsQ ? '?' : a}</div>${rodB}<div class="rod-label">${bIsQ ? '?' : b}</div></div>`;
         html += `<div class="rod-row">${rodR}<div class="rod-label">${rIsQ ? '?' : result}</div></div>`;
     }
     return html;
