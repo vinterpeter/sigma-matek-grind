@@ -567,13 +567,24 @@
         .rewards-title { font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--neon-gold); margin-bottom: 10px; text-align: center; }
         .badges-grid { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
         .badge {
-            background: var(--surface); border-radius: 10px; padding: 6px 12px; font-size: 0.75rem;
-            border: 1px solid var(--surface-3); display: flex; align-items: center; gap: 4px;
-            transition: all 0.2s; font-weight: 600;
+            background: var(--surface); border-radius: 10px; padding: 8px 14px; font-size: 0.8rem;
+            border: 1px solid var(--surface-3); display: flex; align-items: center; gap: 6px;
+            transition: all 0.2s; font-weight: 600; cursor: pointer;
         }
+        .badge:hover { transform: translateY(-2px); }
         .badge.earned { border-color: var(--neon-gold); box-shadow: 0 0 10px rgba(255,208,0,0.12); }
-        .badge.locked { opacity: 0.25; filter: grayscale(1); }
-        .badge-icon { font-size: 1rem; }
+        .badge.locked { opacity: 0.3; filter: grayscale(1); }
+        .badge-icon { font-size: 1.2rem; }
+        .badge-modal-overlay { display:none; position:fixed; inset:0; background:rgba(5,5,15,0.9); z-index:280; justify-content:center; align-items:center; padding:20px; }
+        .badge-modal-overlay.show { display:flex; }
+        .badge-modal { background:var(--surface); border-radius:20px; padding:24px; text-align:center; max-width:320px; width:90%; border:2px solid var(--surface-3); }
+        .badge-modal.earned { border-color:var(--neon-gold); }
+        .badge-modal .bm-icon { font-size:3rem; margin-bottom:8px; }
+        .badge-modal .bm-name { font-size:1.2rem; font-weight:900; color:var(--neon-gold); margin:6px 0; }
+        .badge-modal .bm-desc { font-size:1rem; color:var(--text); line-height:1.5; margin:8px 0; }
+        .badge-modal .bm-status { font-size:0.9rem; font-weight:700; margin:10px 0; }
+        .badge-modal .bm-status.yes { color:var(--neon-lime); }
+        .badge-modal .bm-status.no { color:var(--text-dim); }
 
         /* === START SCREEN === */
         .start-screen { text-align: center; padding: 40px 16px; }
@@ -1105,6 +1116,17 @@
     </div>
 </div>
 
+<!-- Badge Detail -->
+<div class="badge-modal-overlay" id="badgeModalOverlay" onclick="if(event.target===this)closeBadgeModal()">
+    <div class="badge-modal" id="badgeModal">
+        <div class="bm-icon" id="bmIcon"></div>
+        <div class="bm-name" id="bmName"></div>
+        <div class="bm-desc" id="bmDesc"></div>
+        <div class="bm-status" id="bmStatus"></div>
+        <button class="dc-close" onclick="closeBadgeModal()" style="margin-top:10px">Bezárás</button>
+    </div>
+</div>
+
 <!-- Admin Panel -->
 <div class="admin-overlay" id="adminOverlay">
     <div class="admin-inner">
@@ -1375,25 +1397,41 @@ const levels = [
 ];
 
 const badges = [
-    {id:"first",     icon:"🌟",name:"Első lépés",    desc:"Első helyes válasz",         check:()=>state.correct>=1},
-    {id:"streak3",   icon:"🔥",name:"Tűzben",        desc:"3-as streak",                check:()=>state.bestStreak>=3},
-    {id:"streak5",   icon:"💥",name:"Unstoppable",   desc:"5-ös streak",                check:()=>state.bestStreak>=5},
-    {id:"streak10",  icon:"☄️",name:"On Fire fr fr", desc:"10-es streak",               check:()=>state.bestStreak>=10},
-    {id:"ten",       icon:"💪",name:"Grinder",       desc:"10 helyes válasz",           check:()=>state.correct>=10},
-    {id:"twentyfive",icon:"🗿",name:"Sigma Tier",    desc:"25 helyes válasz",           check:()=>state.correct>=25},
-    {id:"fifty",     icon:"👑",name:"Félszázas",     desc:"50 helyes válasz",           check:()=>state.correct>=50},
-    {id:"hundred",   icon:"🏆",name:"Százas King",   desc:"100 helyes válasz",          check:()=>state.correct>=100},
-    {id:"daily",     icon:"📋",name:"Napi Grind",    desc:"Napi küldetés kész",         check:()=>state.dailyClaimed},
-    {id:"accurate",  icon:"🎯",name:"No Miss Gang",  desc:"90%+ (20+ kérdés)",          check:()=>state.total>=20&&(state.correct/state.total)>=0.9},
-    {id:"speed",     icon:"⚡",name:"Speed Demon",   desc:"5 gyors válasz egymásután",  check:()=>state.fastStreak>=5},
-    {id:"lvl5",      icon:"🌀",name:"Fele Kész",     desc:"5. szint",                   check:()=>state.level>=5},
-    {id:"lvl10",     icon:"💎",name:"Maxed Out",     desc:"10. szint",                  check:()=>state.level>=10},
-    {id:"craft1",    icon:"🃏",name:"Első Kártya",   desc:"Első brainrot kártya",      check:()=>state.collection.length>=1},
-    {id:"craft5",    icon:"🔬",name:"Gyűjtő",        desc:"5 kártya a gyűjteményben",  check:()=>state.collection.length>=5},
-    {id:"craft10",   icon:"📦",name:"Pakli Mester",  desc:"10 kártya összegyűjtve",     check:()=>state.collection.length>=10},
-    {id:"fusion1",   icon:"🧬",name:"Első Fúzió",    desc:"Első fúziós kártya!",        check:()=>state.collection.some(c=>c.category==='fusion')},
-    {id:"mythic",    icon:"✨",name:"Mythic Hunter", desc:"Mythic kártya!",             check:()=>state.collection.some(c=>c.rarity==='Mythic')},
-    {id:"italian",   icon:"🇮🇹",name:"Mamma Mia!",   desc:"Italian brainrot kártya!",   check:()=>state.collection.some(c=>c.category==='italian')},
+    // Válaszok
+    {id:"first",     icon:"🌟",name:"Első lépés",         desc:"Add meg az első helyes választ!",                   check:()=>state.correct>=1},
+    {id:"ten",       icon:"💪",name:"Tízes hős",          desc:"Adj meg 10 helyes választ!",                        check:()=>state.correct>=10},
+    {id:"twentyfive",icon:"🧮",name:"Matekos",            desc:"Adj meg 25 helyes választ!",                        check:()=>state.correct>=25},
+    {id:"fifty",     icon:"📚",name:"Félszázas",          desc:"Adj meg 50 helyes választ!",                        check:()=>state.correct>=50},
+    {id:"hundred",   icon:"🏆",name:"Százas bajnok",      desc:"Adj meg 100 helyes választ!",                       check:()=>state.correct>=100},
+    {id:"twohundred",icon:"👑",name:"Matek király",        desc:"Adj meg 200 helyes választ!",                       check:()=>state.correct>=200},
+    // Sorozat
+    {id:"streak3",   icon:"🔥",name:"Lángban",            desc:"Adj meg 3 helyes választ egymás után!",             check:()=>state.bestStreak>=3},
+    {id:"streak5",   icon:"💥",name:"Megállíthatatlan",   desc:"Adj meg 5 helyes választ egymás után!",             check:()=>state.bestStreak>=5},
+    {id:"streak10",  icon:"☄️",name:"Szupersztár",        desc:"Adj meg 10 helyes választ egymás után!",            check:()=>state.bestStreak>=10},
+    // Gyorsaság
+    {id:"speed",     icon:"⚡",name:"Villámgyors",        desc:"Adj meg 5 gyors választ egymás után!",              check:()=>state.fastStreak>=5},
+    {id:"accurate",  icon:"🎯",name:"Pontos célzó",       desc:"Legalább 90% helyes 20+ kérdés után!",              check:()=>state.total>=20&&(state.correct/state.total)>=0.9},
+    // Szintek
+    {id:"lvl3",      icon:"📖",name:"Számoló",            desc:"Érd el a 3. szintet!",                              check:()=>state.level>=3},
+    {id:"lvl5",      icon:"⭐",name:"Matek hős",          desc:"Érd el az 5. szintet!",                             check:()=>state.level>=5},
+    {id:"lvl10",     icon:"💎",name:"Matek király",        desc:"Érd el a 10. szintet!",                             check:()=>state.level>=10},
+    // Napi
+    {id:"daily",     icon:"📋",name:"Szorgalmas",         desc:"Teljesítsd a napi küldetést!",                       check:()=>state.dailyClaimed},
+    // Kártyák
+    {id:"craft1",    icon:"🃏",name:"Első kártya",        desc:"Szerezd meg az első kártyádat!",                    check:()=>state.collection.length>=1},
+    {id:"craft5",    icon:"🗂️",name:"Gyűjtögető",         desc:"Gyűjts 5 kártyát!",                                 check:()=>state.collection.length>=5},
+    {id:"craft10",   icon:"📦",name:"Nagy gyűjtő",        desc:"Gyűjts 10 kártyát!",                                check:()=>state.collection.length>=10},
+    {id:"craft20",   icon:"🎒",name:"Pakli mester",       desc:"Gyűjts 20 kártyát!",                                check:()=>state.collection.length>=20},
+    // Speciális
+    {id:"fusion1",   icon:"🧬",name:"Első keverés",       desc:"Készítsd el az első kevert kártyádat!",             check:()=>state.collection.some(c=>c.category==='fusion')},
+    {id:"italian",   icon:"🇮🇹",name:"Olasz kedvenc",      desc:"Szerezz egy olasz brainrot kártyát!",               check:()=>state.collection.some(c=>c.category==='italian')},
+    {id:"mythic",    icon:"✨",name:"Ritkaságvadász",      desc:"Szerezz egy Mythic ritkaságú kártyát!",             check:()=>state.collection.some(c=>c.rarity==='Mythic')},
+    // Csata
+    {id:"battle1",   icon:"⚔️",name:"Első harc",          desc:"Nyerj meg egy csatát!",                              check:()=>(state.trophies||0)>=1},
+    {id:"battle5",   icon:"🛡️",name:"Harcos",             desc:"Nyerj meg 5 csatát!",                                check:()=>(state.trophies||0)>=5},
+    {id:"battle10",  icon:"🗡️",name:"Bajvívó",            desc:"Nyerj meg 10 csatát!",                               check:()=>(state.trophies||0)>=10},
+    // Tallér
+    {id:"rich",      icon:"🪙",name:"Gazdag",             desc:"Gyűjts össze 50 tallért egyszerre!",                 check:()=>state.talpieres>=50},
 ];
 
 // ==================== BRAINROT CARD DECK ====================
@@ -3182,8 +3220,30 @@ function checkBadges() {
 
 function renderBadges() {
     const g=document.getElementById('badgesGrid'); g.innerHTML='';
-    badges.forEach(b=>{ const e=document.createElement('div'); e.className=`badge ${state.badges.has(b.id)?'earned':'locked'}`; e.innerHTML=`<span class="badge-icon">${b.icon}</span> <span>${b.name}</span>`; e.title=b.desc; g.appendChild(e); });
+    badges.forEach((b,i)=>{
+        const earned = state.badges.has(b.id);
+        const e=document.createElement('div');
+        e.className=`badge ${earned?'earned':'locked'}`;
+        e.innerHTML=`<span class="badge-icon">${b.icon}</span> <span>${b.name}</span>`;
+        e.onclick=()=>showBadgeDetail(i);
+        g.appendChild(e);
+    });
 }
+
+function showBadgeDetail(idx) {
+    const b = badges[idx];
+    const earned = state.badges.has(b.id);
+    document.getElementById('bmIcon').textContent = b.icon;
+    document.getElementById('bmName').textContent = b.name;
+    document.getElementById('bmDesc').textContent = b.desc;
+    document.getElementById('bmStatus').textContent = earned ? '✅ Megszerezve!' : '🔒 Még nem kaptad meg';
+    document.getElementById('bmStatus').className = 'bm-status ' + (earned ? 'yes' : 'no');
+    document.getElementById('badgeModal').className = 'badge-modal' + (earned ? ' earned' : '');
+    document.getElementById('badgeModalOverlay').classList.add('show');
+    AudioEngine.play('click');
+}
+
+function closeBadgeModal() { document.getElementById('badgeModalOverlay').classList.remove('show'); }
 
 // ==================== EFFECTS ====================
 function showFeedback(t,c) { const p=document.getElementById('feedbackPopup'); p.textContent=t; p.style.color=c; p.style.textShadow=`0 0 20px ${c}`; p.classList.remove('show'); void p.offsetWidth; p.classList.add('show'); }
