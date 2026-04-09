@@ -952,6 +952,7 @@
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Enciklopédia</button>
             <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange);background:rgba(255,107,0,0.1)">⚔️ Csata <span id="battleCost" style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
             <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="background:linear-gradient(135deg,var(--neon-lime),#60cc00)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(0/20)</span></button>
+            <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold);background:rgba(255,208,0,0.1)">🛒 Bolt (20🪙)</button>
         </div>
 
         <div class="daily-section">
@@ -1077,6 +1078,18 @@
             </button>
             <br>
             <button class="ency-detail-close" onclick="closeEncyDetail()">Vissza ✖</button>
+        </div>
+    </div>
+</div>
+
+<!-- Shop -->
+<div class="battle-select-overlay" id="shopOverlay">
+    <div class="battle-select-modal">
+        <h3>🛒 Kártya Bolt</h3>
+        <div class="battle-status">Válassz egy kártyát! Ár: 20🪙</div>
+        <div class="battle-select-grid" id="shopGrid" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="battle-actions">
+            <button class="battle-btn close" onclick="closeShop()">Mégse</button>
         </div>
     </div>
 </div>
@@ -1827,6 +1840,8 @@ function updateTokenDisplay() {
     document.getElementById('creatorProgress').textContent = ready ? '(20🪙)' : `(${state.talpieres}/20🪙)`;
     const bb = document.getElementById('battleBtn');
     if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
+    const sb = document.getElementById('shopBtn');
+    if(sb) sb.disabled = state.talpieres < 20;
 }
 
 // ==================== FUSION ====================
@@ -2504,6 +2519,45 @@ function enemyTurn() {
         }, 400);
     });
 }
+
+// ==================== SHOP ====================
+function openShop() {
+    if (state.talpieres < 20) return;
+    AudioEngine.play('click');
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = '';
+    // Show all base cards, mark already owned
+    const ownedIds = new Set(state.collection.map(c => c.id));
+    allBrainrotCards.forEach(card => {
+        const el = document.createElement('div');
+        el.className = 'battle-select-card';
+        const owned = ownedIds.has(card.id);
+        const img = card.image || '';
+        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${owned ? '✅ ' : ''}${card.name}</div>`;
+        if (owned) el.style.opacity = '0.5';
+        el.onclick = () => {
+            if (state.talpieres < 20) return;
+            AudioEngine.play('reward');
+            state.talpieres -= 20;
+            const seed = Math.floor(Math.random() * 999999);
+            const collectionCard = {
+                id: card.id, name: card.name, rarity: card.rarity,
+                rarityClass: 'rarity-' + card.rarity.toLowerCase(),
+                category: card.category, story: card.story,
+                imgUrl: card.image, image: card.image, prompt: card.prompt, _seed: seed,
+                stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91) }
+            };
+            state.collection.push(collectionCard);
+            saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
+            AudioEngine.speak(`${card.name} megvásárolva!`);
+            closeShop();
+        };
+        grid.appendChild(el);
+    });
+    document.getElementById('shopOverlay').classList.add('show');
+}
+
+function closeShop() { document.getElementById('shopOverlay').classList.remove('show'); AudioEngine.play('click'); }
 
 function renderCollection() {
     const section=document.getElementById('collectionSection'), grid=document.getElementById('collectionGrid');
