@@ -1548,13 +1548,26 @@ function genPotlas() {
 
 // 6. Nagyságviszony
 function genCompare() {
-    let a, b;
-    if(Math.random()<0.15) { a = rnd(0,20); b = a; } // sometimes equal
-    else { a = rnd(0,20); b = rnd(0,20); while(b===a) b=rnd(0,20); }
-    currentAnswer = a<b ? '<' : a>b ? '>' : '=';
+    let aVal, bVal, aText, bText;
+    const useExpr = Math.random() < 0.33;
+    if(Math.random()<0.15) { aVal = rnd(0,20); bVal = aVal; }
+    else { aVal = rnd(0,20); bVal = rnd(0,20); while(bVal===aVal) bVal=rnd(0,20); }
+    aText = String(aVal); bText = String(bVal);
+    if (useExpr) {
+        // One side becomes an expression
+        const side = Math.random() > 0.5 ? 'a' : 'b';
+        const val = side === 'a' ? aVal : bVal;
+        const isAdd = Math.random() > 0.5;
+        let x, y;
+        if (isAdd) { x = rnd(0, val); y = val - x; }
+        else { x = rnd(val, 20); y = x - val; }
+        const expr = isAdd ? `${x} + ${y}` : `${x} − ${y}`;
+        if (side === 'a') aText = expr; else bText = expr;
+    }
+    currentAnswer = aVal<bVal ? '<' : aVal>bVal ? '>' : '=';
     currentAnswerType = 'compare';
     document.getElementById('problemLabel').textContent = 'Melyik jel a helyes?';
-    document.getElementById('problem').innerHTML = `<span>${a}</span><span class="operator"> ☐ </span><span>${b}</span>`;
+    document.getElementById('problem').innerHTML = `<span>${aText}</span><span class="operator"> ☐ </span><span>${bText}</span>`;
     document.getElementById('problemStory').style.display = 'none';
 }
 
