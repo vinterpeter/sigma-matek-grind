@@ -323,6 +323,34 @@
             .daily-section { margin: 4px 0; padding: 8px 12px; }
         }
 
+        /* === HINT / RODS === */
+        .hint-btn {
+            display: none; margin: 6px auto 0; padding: 10px 20px; border-radius: 12px;
+            border: 2px solid var(--neon-purple); background: rgba(180,74,255,0.1);
+            color: var(--neon-purple); font-family: 'Outfit',sans-serif; font-size: 1rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s; animation: hintPulse 1s ease infinite;
+        }
+        .hint-btn.show { display: inline-block; }
+        @keyframes hintPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 16px rgba(180,74,255,0.3); } }
+        .hint-overlay { display:none; position:fixed; inset:0; background:rgba(5,5,15,0.92); z-index:310; justify-content:center; align-items:center; padding:16px; overflow-y:auto; }
+        .hint-overlay.show { display:flex; }
+        .hint-modal { background:var(--surface); border-radius:20px; padding:20px; max-width:480px; width:95%; border:2px solid var(--neon-purple); max-height:90vh; overflow-y:auto; }
+        .hint-title { text-align:center; font-size:1.1rem; font-weight:900; color:var(--neon-purple); margin-bottom:12px; }
+        .rod-row { display:flex; align-items:center; gap:6px; margin:6px 0; }
+        .rod {
+            height: 28px; border-radius: 6px; display: flex; align-items: center;
+            justify-content: center; font-size: 0.75rem; font-weight: 800; color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5); min-width: 20px;
+            transition: all 0.3s;
+        }
+        .rod-label { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); min-width: 24px; text-align: center; }
+        .rod-op { font-size: 1.2rem; font-weight: 900; color: var(--text); min-width: 24px; text-align: center; }
+        .rod-eq { font-size: 1rem; font-weight: 900; color: var(--neon-cyan); margin: 8px 0 4px; }
+        .rod-legend { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--surface-3); }
+        .rod-legend-item { text-align: center; }
+        .rod-legend-item .rod { margin: 0 auto 2px; }
+        .rod-legend-item .rod-val { font-size: 0.65rem; color: var(--text-dim); }
+
         /* === TIMER === */
         .timer-section { margin-top: 14px; }
         .timer-bar-container { background: var(--surface-2); border-radius: 8px; height: 6px; overflow: hidden; }
@@ -957,6 +985,7 @@
             <div class="timer-section">
                 <div class="timer-bar-container"><div class="timer-bar-fill" id="timerBar"></div></div>
             </div>
+            <button class="hint-btn" id="hintBtn" onclick="showHint()">🤔 Segítség</button>
             <div id="inputArea">
                 <div class="pinpad-area" id="pinpadArea">
                     <div class="pin-display" id="pinDisplay"><span class="pin-cursor">_</span></div>
@@ -1165,6 +1194,17 @@
             <br>
             <button class="ency-detail-close" onclick="closeEncyDetail()">Vissza ✖</button>
         </div>
+    </div>
+</div>
+
+<!-- Hint Modal -->
+<div class="hint-overlay" id="hintOverlay" onclick="if(event.target===this)closeHint()">
+    <div class="hint-modal">
+        <div class="hint-title">🧮 Számolórudak</div>
+        <div id="hintRodContent"></div>
+        <div class="hint-title" style="font-size:0.8rem;margin-top:14px">Jelmagyarázat</div>
+        <div class="rod-legend" id="rodLegend"></div>
+        <button class="dc-close" onclick="closeHint()" style="margin-top:12px;display:block;margin-left:auto;margin-right:auto">Bezárás</button>
     </div>
 </div>
 
@@ -1834,6 +1874,7 @@ function readStory() {
 // --- MAIN GENERATE ---
 function generateProblem() {
     pinValue = ''; currentRetries = 0; updatePinDisplay();
+    document.getElementById('hintBtn').classList.remove('show');
     // Reset compare buttons from previous round
     document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
@@ -1891,8 +1932,110 @@ function compareSubmit(sign) {
 // --- ANSWER PROCESSING ---
 function startTimer() {
     timerValue=100; document.getElementById('timerBar').style.width='100%';
+    document.getElementById('hintBtn').classList.remove('show');
     clearInterval(timerInterval);
-    timerInterval = setInterval(()=>{ timerValue-=1; document.getElementById('timerBar').style.width=timerValue+'%'; if(timerValue<=0)clearInterval(timerInterval); },80);
+    timerInterval = setInterval(()=>{
+        timerValue-=1;
+        document.getElementById('timerBar').style.width=timerValue+'%';
+        if(timerValue<=0) {
+            clearInterval(timerInterval);
+            document.getElementById('hintBtn').classList.add('show');
+        }
+    },80);
+}
+
+// === CUISENAIRE RODS ===
+const rodColors = ['','#fff','#e74c3c','#2ecc71','#9b59b6','#f1c40f','#27ae60','#2c3e50','#8B4513','#3498db','#e67e22'];
+const rodNames = ['','fehér','piros','zöld','lila','sárga','sötétzöld','fekete','barna','kék','narancs'];
+
+function makeRod(n) {
+    if (n < 1 || n > 10) return `<div class="rod" style="width:${n*28}px;background:var(--text-dim)">${n}</div>`;
+    return `<div class="rod" style="width:${n*28}px;background:${rodColors[n]}">${n}</div>`;
+}
+
+function showHint() {
+    AudioEngine.play('click');
+    const content = document.getElementById('hintRodContent');
+    const problem = document.getElementById('problem').textContent.trim();
+
+    // Parse the current problem to show rods
+    let html = '';
+    if (currentAnswerType === 'compare') {
+        html = `<div style="text-align:center;color:var(--text);margin:10px 0">Hasonlítsd össze a rudak hosszát!</div>`;
+        // Try to extract numbers
+        const nums = problem.match(/\d+/g);
+        if (nums && nums.length >= 2) {
+            const a = Math.min(parseInt(nums[0]), 20);
+            const b = Math.min(parseInt(nums[nums.length-1]), 20);
+            html += renderRodComparison(a, b);
+        }
+    } else {
+        // Number problem — show the equation with rods
+        html = renderRodProblem();
+    }
+
+    content.innerHTML = html;
+
+    // Render legend
+    const legend = document.getElementById('rodLegend');
+    legend.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        legend.innerHTML += `<div class="rod-legend-item">${makeRod(i)}<div class="rod-val">${i} - ${rodNames[i]}</div></div>`;
+    }
+
+    document.getElementById('hintOverlay').classList.add('show');
+}
+
+function closeHint() { document.getElementById('hintOverlay').classList.remove('show'); }
+
+function renderRodProblem() {
+    // Try to figure out the problem from the display
+    const probText = document.getElementById('problem').textContent.trim();
+    const parts = probText.match(/(\d+|[?])\s*([+−])\s*(\d+|[?])\s*=\s*(\d+|[?])/);
+    if (!parts) {
+        // Fallback: just show the answer as a rod
+        if (currentAnswer >= 1 && currentAnswer <= 20) {
+            let html = '<div style="text-align:center;color:var(--text);margin:8px 0">A helyes válasz ilyen hosszú:</div>';
+            html += '<div class="rod-row" style="justify-content:center">' + renderRodNumber(currentAnswer) + '</div>';
+            return html;
+        }
+        return '<div style="text-align:center;color:var(--text-dim)">Gondolkodj a számolórudakkal!</div>';
+    }
+
+    const a = parts[1] === '?' ? currentAnswer : parseInt(parts[1]);
+    const op = parts[2];
+    const b = parts[3] === '?' ? currentAnswer : parseInt(parts[3]);
+    const result = parts[4] === '?' ? currentAnswer : parseInt(parts[4]);
+
+    let html = '';
+    if (op === '+') {
+        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
+        html += `<div class="rod-row"><div class="rod-op">+</div></div>`;
+        html += `<div class="rod-row">${renderRodNumber(b)}<div class="rod-label">${b}</div></div>`;
+        html += `<div class="rod-eq">= együttvéve:</div>`;
+        html += `<div class="rod-row">${renderRodNumber(result)}<div class="rod-label">${result}</div></div>`;
+    } else {
+        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
+        html += `<div class="rod-row"><div class="rod-op">−</div></div>`;
+        html += `<div class="rod-row">${renderRodNumber(b)}<div class="rod-label">${b}</div></div>`;
+        html += `<div class="rod-eq">= ami marad:</div>`;
+        html += `<div class="rod-row">${renderRodNumber(result)}<div class="rod-label">${result}</div></div>`;
+    }
+    return html;
+}
+
+function renderRodNumber(n) {
+    if (n <= 0) return makeRod(0);
+    if (n <= 10) return makeRod(n);
+    // Numbers 11-20: show as 10 + remainder
+    return makeRod(10) + `<span style="margin:0 2px;color:var(--text-dim)">+</span>` + makeRod(n - 10);
+}
+
+function renderRodComparison(a, b) {
+    return `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>
+            <div style="text-align:center;color:var(--text-dim);font-size:0.8rem;margin:4px 0">összehasonlítva</div>
+            <div class="rod-row">${renderRodNumber(b)}<div class="rod-label">${b}</div></div>
+            <div style="text-align:center;color:var(--neon-cyan);font-size:0.9rem;margin-top:8px;font-weight:700">Melyik a hosszabb?</div>`;
 }
 
 function processAnswer(answer) {
