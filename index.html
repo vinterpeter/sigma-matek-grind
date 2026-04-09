@@ -1699,11 +1699,11 @@ function processAnswer(answer) {
 
     if (isCorrect) {
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'correct':'correct-flash');
-        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.talpieres++;
+        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
         if(state.streak>=3)xp+=5; if(state.streak>=5)xp+=5; if(state.streak>=10)xp+=10;
-        if(isFast){xp+=5; state.fastStreak=(state.fastStreak||0)+1;} else state.fastStreak=0;
+        if(isFast){xp+=5; state.fastStreak=(state.fastStreak||0)+1; state.talpieres+=2;} else { state.fastStreak=0; state.talpieres++; }
         state.xp+=xp; state.score+=xp;
         AudioEngine.play('correct');
         if(state.streak>0&&state.streak%5===0) AudioEngine.play('streak');
