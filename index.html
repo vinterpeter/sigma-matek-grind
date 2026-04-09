@@ -971,14 +971,11 @@
 
         <!-- BELOW THE FOLD - scroll for extras -->
         <div class="brainrot-counter">
-            <span class="bc-icon">🃏</span>
-            <span class="bc-text">Kártyák:</span>
-            <span class="bc-value" id="tokenDisplay2">0</span>
-            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Fúzió</button>
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Enciklopédia</button>
-            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange);background:rgba(255,107,0,0.1)">⚔️ Csata <span id="battleCost" style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
-            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="background:linear-gradient(135deg,var(--neon-lime),#60cc00)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(0/20)</span></button>
-            <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold);background:rgba(255,208,0,0.1)">🛒 Bolt (20🪙)</button>
+            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Fúzió <span id="fusionCostLabel" style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
+            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Csata <span style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
+            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
+            <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold)">🛒 Bolt <span style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
         </div>
 
         <div class="daily-section">
@@ -1910,20 +1907,12 @@ function readRewardStory() {
 
 function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
-    const td2 = document.getElementById('tokenDisplay2'); if(td2) td2.textContent = state.collection.length;
     const td = document.getElementById('tallierDisplay'); if(td) td.textContent = state.talpieres;
     const tp = document.getElementById('trophyDisplay'); if(tp) tp.textContent = state.trophies || 0;
-    const canFuse = state.collection.length >= 2 && state.talpieres >= 1;
-    document.getElementById('craftBtn').disabled = !canFuse;
-    document.getElementById('craftBtn').textContent = canFuse ? '🔬 Fúzió (1🪙)' : `🔬 Fúzió (${state.talpieres}/1🪙)`;
-    const creatorBtn = document.getElementById('creatorBtn');
-    const ready = state.talpieres >= 20;
-    creatorBtn.disabled = !ready;
-    document.getElementById('creatorProgress').textContent = ready ? '(20🪙)' : `(${state.talpieres}/20🪙)`;
-    const bb = document.getElementById('battleBtn');
-    if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
-    const sb = document.getElementById('shopBtn');
-    if(sb) sb.disabled = state.talpieres < 20;
+    document.getElementById('craftBtn').disabled = !(state.collection.length >= 2 && state.talpieres >= 1);
+    document.getElementById('creatorBtn').disabled = state.talpieres < 20;
+    const bb = document.getElementById('battleBtn'); if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
+    const sb = document.getElementById('shopBtn'); if(sb) sb.disabled = state.talpieres < 20;
 }
 
 // ==================== FUSION ====================
