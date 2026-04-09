@@ -1964,10 +1964,9 @@ function generateFusion() {
     const loadTexts = ["Brainrot DNS keverés...","Kártyák összeolvasztása...","Sigma energiák összefoglalása...","Ohio dimenzió megnyitása...","AI képgenerálás folyamatban...","Entitás renderelése...","Fúziós reakció...","Új lény születik..."];
     let li=0;
     const loadInt = setInterval(()=>{li=(li+1)%loadTexts.length; document.getElementById('loadingText').textContent=loadTexts[li];},500);
-    const prompts = cards.map(c => c.prompt || c.name).join(', ');
-    const storyHints = cards.map(c => (c.story||'').split('.')[0]).filter(s=>s.length>5).join('. ');
     const nameList = cards.map(c => c.name).join(' and ');
-    const fullPrompt = `fusion hybrid creature combining: ${nameList}. Visual elements from all: ${prompts}. Character essence: ${storyHints}. Meme style digital art, funny brainrot humor, colorful, detailed, high quality, epic fusion creature, all original characters visibly merged`;
+    const shortPrompts = cards.map(c => (c.prompt || c.name).slice(0, 40)).join(', ');
+    const fullPrompt = `fusion of ${nameList}, ${shortPrompts}, meme style, colorful, detailed, epic creature`;
     const seed = Math.floor(Math.random()*999999);
     const imgUrl = pollinationsUrl(fullPrompt, seed);
     const prefix = fusionPrefixes[Math.floor(Math.random()*fusionPrefixes.length)];
@@ -2177,14 +2176,9 @@ function renderCreatorResult(container) {
     AudioEngine.play('craft');
 
     // Build the AI prompt
-    const promptParts = [
-        `A ${animal.prompt}`,
-        `combined with ${object.prompt}`,
-        `set in ${location.prompt}`,
-        `with the trait of ${trait.prompt}`,
-    ];
-    if (message) promptParts.push(message);
-    const fullPrompt = `Italian brainrot meme character: ${promptParts.join(', ')}. Cartoon style, colorful, funny, detailed character art, meme aesthetic, high quality digital art`;
+    const parts = [animal.prompt.slice(0,30), object.prompt.slice(0,30), location.prompt.slice(0,30), trait.prompt.slice(0,30)];
+    if (message) parts.push(message.slice(0,40));
+    const fullPrompt = `Italian brainrot: ${parts.join(', ')}, cartoon, colorful, meme style`;
 
     const seed = Math.floor(Math.random() * 999999);
     const imgUrl = pollinationsUrl(fullPrompt, seed);
