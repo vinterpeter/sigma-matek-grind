@@ -805,6 +805,10 @@
         <p>Oldd meg a matekot, gyűjts 100 brainrot kártyát,<br>olvaszd össze őket AI-val és legyél <span style="color:var(--neon-mag);">Sigma</span>! 🔥<br><small style="color:var(--text-muted);">50 Classic 🧠 + 50 Italian 🇮🇹 Brainrot</small></p>
         <button class="start-btn" onclick="startGame()">GRIND INDUL 🚀</button>
         <p class="start-tagline">Only real sigmas can solve these 💀</p>
+        <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
+            <button class="action-btn encyclopedia-btn" onclick="exportData()" style="font-size:0.7rem">💾 Mentés</button>
+            <button class="action-btn craft-btn" onclick="importData()" style="font-size:0.7rem;border-color:var(--neon-purple);color:var(--neon-purple)">📂 Betöltés</button>
+        </div>
     </div>
 
     <div class="game-area" id="gameArea">
@@ -821,6 +825,7 @@
             </div>
             <div class="top-bar-right">
                 <span class="top-stat">⭐ <span id="scoreDisplay">0</span></span>
+                <span class="top-stat">🪙 <span id="tallierDisplay">0</span></span>
                 <span class="top-stat">🃏 <span id="tokenDisplay">0</span></span>
             </div>
         </div>
@@ -1077,7 +1082,7 @@ function loadStateFromCloud() {
                 state.tokens = p.tokens || 0;
                 state.correctSinceLastReward = p.correctSinceLastReward || 0;
                 state.nextRewardAt = p.nextRewardAt || randReward();
-                state.creatorCorrect = p.creatorCorrect || 0;
+                state.talpieres = p.talpieres || 0;
                 console.log('State loaded from cloud');
             }
         }
@@ -1141,8 +1146,7 @@ const state = {
     dailyCorrect:0, dailyGoal:10, dailyClaimed:false, badges: new Set(),
     questionStart:0, fastStreak:0, tokens:0,
     correctSinceLastReward:0, nextRewardAt:0,
-    creatorCorrect:0,
-    fusionTokens:0,
+    talpieres:0,
     collection: [],
     // Per-type stats: { correct, total }
     typeStats: {
@@ -1244,8 +1248,7 @@ function loadState() {
         state.tokens = p.tokens||0;
         state.correctSinceLastReward = p.correctSinceLastReward||0;
         state.nextRewardAt = p.nextRewardAt||randReward();
-        state.creatorCorrect = p.creatorCorrect||0;
-        state.fusionTokens = p.fusionTokens||0;
+        state.talpieres = p.talpieres || p.creatorCorrect || p.fusionTokens || 0;
         if (p.typeStats) state.typeStats = p.typeStats;
         state.retryQueue = p.retryQueue || [];
         state.questionCount = p.questionCount || 0;
@@ -1584,7 +1587,7 @@ function processAnswer(answer) {
 
     if (isCorrect) {
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'correct':'correct-flash');
-        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.creatorCorrect++; state.fusionTokens++;
+        state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++; state.talpieres++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
         if(state.streak>=3)xp+=5; if(state.streak>=5)xp+=5; if(state.streak>=10)xp+=10;
@@ -1650,7 +1653,6 @@ function showBrainrotReward() {
     if(card.rarity==='Legendary') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+30));
     if(card.rarity==='Mythic') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+45));
     state.collection.push(collectionCard);
-    state.tokens++;
     const catLabel = card.category === 'italian' ? '🇮🇹 ITALIAN BRAINROT' : '🧠 CLASSIC BRAINROT';
     document.getElementById('rewardBadge').textContent = `🎉 ${catLabel} UNLOCKED 🎉`;
     document.getElementById('rewardTitle').textContent = card.name;
@@ -1690,19 +1692,21 @@ function readRewardStory() {
 function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
     const td2 = document.getElementById('tokenDisplay2'); if(td2) td2.textContent = state.collection.length;
-    const canFuse = state.collection.length >= 2 && state.fusionTokens >= 1;
+    const td = document.getElementById('tallierDisplay'); if(td) td.textContent = state.talpieres;
+    const canFuse = state.collection.length >= 2 && state.talpieres >= 1;
     document.getElementById('craftBtn').disabled = !canFuse;
+    document.getElementById('craftBtn').textContent = canFuse ? '🔬 Fúzió (1🪙)' : `🔬 Fúzió (${state.talpieres}/1🪙)`;
     const creatorBtn = document.getElementById('creatorBtn');
-    const ready = state.creatorCorrect >= 20;
+    const ready = state.talpieres >= 20;
     creatorBtn.disabled = !ready;
-    document.getElementById('creatorProgress').textContent = ready ? '✓' : `(${state.creatorCorrect}/20)`;
+    document.getElementById('creatorProgress').textContent = ready ? '(20🪙)' : `(${state.talpieres}/20🪙)`;
 }
 
 // ==================== FUSION ====================
 let fusionSelected = [];
 
 function openCrafting() {
-    if(state.collection.length < 2 || state.fusionTokens < 1) return;
+    if(state.collection.length < 2 || state.talpieres < 1) return;
     AudioEngine.play('click'); fusionSelected = [];
     const grid = document.getElementById('fusionCardGrid'); grid.innerHTML = '';
     state.collection.forEach((card, idx) => {
@@ -1796,7 +1800,7 @@ function generateFusion() {
 function keepCrafted() {
     if(!window._lastCrafted) return;
     state.collection.push(window._lastCrafted);
-    state.fusionTokens = 0;
+    state.talpieres = Math.max(0, state.talpieres - 1);
     AudioEngine.play('token'); AudioEngine.speak("Fúziós brainrot hozzáadva a gyűjteményhez!");
     saveState(); renderCollection(); updateTokenDisplay(); checkBadges(); closeCrafting();
     document.getElementById('craftGenerateBtn').style.display=''; window._lastCrafted=null;
@@ -1816,7 +1820,7 @@ let creatorSelections = { animal: null, object: null, location: null, trait: nul
 let creatorGeneratedCard = null;
 
 function openCreator() {
-    if (state.creatorCorrect < 20) return;
+    if (state.talpieres < 20) return;
     AudioEngine.play('click');
     creatorStep = 0;
     creatorSelections = { animal: null, object: null, location: null, trait: null, message: '' };
@@ -2066,8 +2070,7 @@ function renderCreatorResult(container) {
 function keepCreated() {
     if (!creatorGeneratedCard) return;
     state.collection.push(creatorGeneratedCard);
-    state.tokens++;
-    state.creatorCorrect = 0;
+    state.talpieres = Math.max(0, state.talpieres - 20);
     AudioEngine.play('token');
     AudioEngine.speak("Új brainrot hozzáadva a gyűjteményhez!");
     saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
@@ -2334,6 +2337,39 @@ function startGame() {
     document.getElementById('startScreen').style.display='none';
     document.getElementById('gameArea').classList.add('active');
     loadState(); updateStats(); updateTokenDisplay(); renderBadges(); renderCollection(); checkDaily(); generateProblem();
+}
+
+// ==================== DATA EXPORT/IMPORT ====================
+function exportData() {
+    const data = localStorage.getItem('sigmaMatek3');
+    if (!data) { alert('Nincs mentett adat!'); return; }
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `sigma_matek_backup_${new Date().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(url);
+    AudioEngine.play('token');
+}
+
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = e => {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const parsed = JSON.parse(ev.target.result);
+                if (!parsed.correct && parsed.correct !== 0) throw new Error('Nem Sigma Matek fájl');
+                localStorage.setItem('sigmaMatek3', ev.target.result);
+                loadState(); updateStats(); updateTokenDisplay(); renderBadges(); renderCollection();
+                AudioEngine.play('reward');
+                alert('Adat visszaállítva! ' + (parsed.collection?.length || 0) + ' kártya betöltve.');
+            } catch(err) { alert('Hiba: ' + err.message); }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
 }
 
 createBgEmojis();
