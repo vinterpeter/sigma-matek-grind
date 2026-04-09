@@ -346,10 +346,9 @@
         .rod-label { font-size: 0.8rem; font-weight: 700; color: var(--text-dim); min-width: 24px; text-align: center; }
         .rod-op { font-size: 1.2rem; font-weight: 900; color: var(--text); min-width: 24px; text-align: center; }
         .rod-eq { font-size: 1rem; font-weight: 900; color: var(--neon-cyan); margin: 8px 0 4px; }
-        .rod-legend { display: grid; grid-template-columns: repeat(5,1fr); gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--surface-3); }
-        .rod-legend-item { text-align: center; }
-        .rod-legend-item .rod { margin: 0 auto 2px; }
-        .rod-legend-item .rod-val { font-size: 0.65rem; color: var(--text-dim); }
+        .rod-legend { display: flex; flex-direction: column; gap: 4px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--surface-3); }
+        .rod-legend-item { display: flex; align-items: center; gap: 8px; }
+        .rod-legend-item .rod-val { font-size: 0.7rem; color: var(--text-dim); min-width: 70px; }
 
         /* === TIMER === */
         .timer-section { margin-top: 14px; }
@@ -1939,7 +1938,9 @@ function startTimer() {
         document.getElementById('timerBar').style.width=timerValue+'%';
         if(timerValue<=0) {
             clearInterval(timerInterval);
-            document.getElementById('hintBtn').classList.add('show');
+            if(currentProblemType !== 'ruleGame' && currentProblemType !== 'sequence') {
+                document.getElementById('hintBtn').classList.add('show');
+            }
         }
     },80);
 }
