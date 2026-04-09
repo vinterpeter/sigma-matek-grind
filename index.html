@@ -100,6 +100,14 @@
         .top-level { font-size: 0.85rem; font-weight: 900; color: var(--neon-gold); }
         .top-level-title { font-size: 0.7rem; font-weight: 600; color: var(--neon-mag); display: block; }
 
+        /* === RANK BAR === */
+        .rank-bar {
+            display: flex; justify-content: center; gap: 16px; align-items: center;
+            padding: 2px 8px; margin: 2px 0;
+            font-size: 0.75rem; font-weight: 700; color: var(--neon-gold);
+        }
+        .rank-bar #rankWins { color: var(--neon-orange); font-size: 0.7rem; }
+
         /* === XP BAR MINI === */
         .xp-bar-mini {
             background: var(--surface); border-radius: 6px; height: 6px; overflow: hidden;
@@ -942,6 +950,11 @@
                 <span class="top-stat top-btn" onclick="openBadgesPage()">🏆 <span id="trophyDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openCollectionPage()">🃏 <span id="tokenDisplay">0</span></span>
             </div>
+        </div>
+
+        <div class="rank-bar" id="rankBar">
+            <span id="rankDisplay">🔰 Újonc</span>
+            <span id="rankWins">⚔️ 0 győzelem</span>
         </div>
 
         <div class="xp-bar-mini"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
@@ -2003,7 +2016,14 @@ function readRewardStory() {
 function updateTokenDisplay() {
     document.getElementById('tokenDisplay').textContent = state.collection.length;
     const td = document.getElementById('tallierDisplay'); if(td) td.textContent = state.talpieres;
-    const tp = document.getElementById('trophyDisplay'); if(tp) tp.textContent = state.trophies || 0;
+    // Trophy = achievement count
+    const earnedBadges = badges.filter(b => state.badges.has(b.id)).length;
+    const tp = document.getElementById('trophyDisplay'); if(tp) tp.textContent = earnedBadges;
+    // Rank bar
+    const rank = getMilitaryRank();
+    const rd = document.getElementById('rankDisplay'); if(rd) rd.textContent = `${rank.icon} ${rank.name}`;
+    const rw = document.getElementById('rankWins'); if(rw) rw.textContent = `⚔️ ${state.trophies||0} győzelem`;
+    // Buttons
     document.getElementById('craftBtn').disabled = !(state.collection.length >= 2 && state.talpieres >= 1);
     document.getElementById('creatorBtn').disabled = state.talpieres < 20;
     const bb = document.getElementById('battleBtn'); if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
