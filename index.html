@@ -1281,10 +1281,11 @@ try { initFirebase(); } catch(e) {}
 // ==================== EVENT LOG ====================
 function logEvent(type, data) {
     if (!state.eventLog) state.eventLog = [];
-    state.eventLog.push({ t: Date.now(), type, ...data });
+    const entry = { t: Date.now(), type, ...data };
+    state.eventLog.push(entry);
     if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
-    // Immediately persist so admin panel always has latest data
     try { localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)})); } catch(e) {}
+    console.log('[LOG]', type, entry);
 }
 
 // ==================== POLLINATIONS API ====================
@@ -2703,8 +2704,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function openAdmin() {
-    if (!state.total && !state.eventLog.length) loadState();
+    loadState(); // Always refresh from localStorage
     document.getElementById('adminOverlay').classList.add('show');
+    adminSelectedUid = null;
     loadAllPlayers();
 }
 function closeAdmin() { document.getElementById('adminOverlay').classList.remove('show'); }
@@ -2753,6 +2755,12 @@ function loadAllPlayers() {
 
 function renderAdminPlayerList() {
     const c = document.getElementById('adminContent');
+    // Auto-select if only one player
+    if (!adminSelectedUid && adminPlayers.length === 1) {
+        adminSelectedUid = adminPlayers[0].uid;
+        showAdminTab('summary');
+        return;
+    }
     if (!adminSelectedUid) {
         // Show player list
         const rankOf = (p) => {
@@ -2795,7 +2803,7 @@ function adminBack() {
 }
 
 function getAdminPlayerData() {
-    if (!adminSelectedUid) return state;
+    if (!adminSelectedUid || adminSelectedUid === 'local') return state;
     return adminPlayers.find(p => p.uid === adminSelectedUid) || state;
 }
 
