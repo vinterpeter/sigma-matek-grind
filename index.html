@@ -763,6 +763,74 @@
         }
         .dc-close:hover { border-color: var(--neon-purple); color: white; }
 
+        /* === BATTLE === */
+        .battle-overlay {
+            display: none; position: fixed; inset: 0;
+            background: var(--void); z-index: 270; overflow-y: auto;
+        }
+        .battle-overlay.show { display: block; }
+        .battle-inner { max-width: 600px; margin: 0 auto; padding: 10px 14px; }
+        .battle-header { text-align: center; padding: 8px 0; position: relative; }
+        .battle-header h2 { font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 900; color: var(--neon-orange); }
+        .battle-status { font-size: 0.85rem; color: var(--text-dim); margin: 4px 0; font-weight: 600; }
+        .battle-arena { display: flex; flex-direction: column; gap: 12px; margin: 8px 0; }
+        .battle-side { display: flex; gap: 8px; justify-content: center; }
+        .battle-side-label { text-align: center; font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+        .battle-side-label.player { color: var(--neon-cyan); }
+        .battle-side-label.enemy { color: var(--neon-mag); }
+        .battle-card {
+            background: var(--surface); border-radius: 12px; padding: 8px; width: 110px;
+            border: 2px solid var(--surface-3); text-align: center; transition: all 0.2s;
+            position: relative; cursor: pointer;
+        }
+        .battle-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; display: block; }
+        .battle-card .bc-name { font-size: 0.6rem; font-weight: 700; margin-top: 4px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .battle-card .bc-hp-bar { height: 6px; background: var(--surface-3); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+        .battle-card .bc-hp-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+        .battle-card .bc-hp-fill.high { background: var(--neon-lime); }
+        .battle-card .bc-hp-fill.mid { background: var(--neon-gold); }
+        .battle-card .bc-hp-fill.low { background: var(--neon-mag); }
+        .battle-card .bc-hp-text { font-size: 0.55rem; color: var(--text-dim); margin-top: 2px; }
+        .battle-card.selected { border-color: var(--neon-cyan); box-shadow: 0 0 12px rgba(0,240,255,0.3); }
+        .battle-card.target { border-color: var(--neon-mag); box-shadow: 0 0 12px rgba(255,45,149,0.3); }
+        .battle-card.dead { opacity: 0.3; pointer-events: none; }
+        .battle-card.dead::after { content: '💀'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 2rem; }
+        .battle-card.hit { animation: battleHit 0.3s ease; }
+        @keyframes battleHit { 0%,100% { transform: scale(1); } 50% { transform: scale(0.9); filter: brightness(2); } }
+        .battle-dmg { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-weight: 900; font-size: 1.2rem; color: var(--neon-mag); text-shadow: 0 0 8px rgba(255,45,149,0.5); animation: dmgFloat 1s ease forwards; pointer-events: none; z-index: 5; }
+        @keyframes dmgFloat { 0% { opacity: 1; transform: translateX(-50%) translateY(0); } 100% { opacity: 0; transform: translateX(-50%) translateY(-30px); } }
+        .battle-log { background: var(--surface); border-radius: 10px; padding: 10px 14px; margin: 8px 0; max-height: 120px; overflow-y: auto; font-size: 0.8rem; line-height: 1.6; color: var(--text-dim); border: 1px solid var(--surface-3); }
+        .battle-log .log-player { color: var(--neon-cyan); }
+        .battle-log .log-enemy { color: var(--neon-mag); }
+        .battle-log .log-dmg { color: var(--neon-gold); font-weight: 700; }
+        .battle-actions { display: flex; gap: 8px; justify-content: center; margin: 10px 0; flex-wrap: wrap; }
+        .battle-btn {
+            font-family: 'Outfit', sans-serif; font-size: 0.9rem; font-weight: 700;
+            padding: 10px 22px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 1px; border: none;
+        }
+        .battle-btn.attack { background: linear-gradient(135deg, var(--neon-orange), var(--neon-mag)); color: white; }
+        .battle-btn.attack:disabled { opacity: 0.3; cursor: not-allowed; }
+        .battle-btn.attack:not(:disabled):hover { transform: scale(1.05); }
+        .battle-btn.close { background: transparent; color: var(--text-dim); border: 1px solid var(--surface-3); }
+
+        .battle-select-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(5,5,15,0.95); z-index: 275; overflow-y: auto;
+            justify-content: center; align-items: center; padding: 20px;
+        }
+        .battle-select-overlay.show { display: flex; }
+        .battle-select-modal { background: var(--surface); border-radius: 20px; padding: 20px; max-width: 420px; width: 95%; text-align: center; max-height: 90vh; overflow-y: auto; }
+        .battle-select-modal h3 { font-size: 1.1rem; color: var(--neon-orange); margin-bottom: 12px; }
+        .battle-select-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+        .battle-select-card {
+            background: var(--surface-2); border-radius: 10px; padding: 6px; cursor: pointer;
+            border: 2px solid var(--surface-3); transition: all 0.2s; text-align: center;
+        }
+        .battle-select-card.picked { border-color: var(--neon-orange); background: rgba(255,107,0,0.1); }
+        .battle-select-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
+        .battle-select-card .bsc-name { font-size: 0.6rem; font-weight: 700; margin-top: 3px; }
+
         /* === EFFECTS === */
         .feedback-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); font-family: 'Outfit', sans-serif; font-size: 2.5rem; z-index: 100; pointer-events: none; text-align: center; }
         .feedback-popup.show { animation: popIn 0.7s ease forwards; }
@@ -875,6 +943,7 @@
             <span class="bc-value" id="tokenDisplay2">0</span>
             <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Fúzió</button>
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Enciklopédia</button>
+            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange);background:rgba(255,107,0,0.1)">⚔️ Csata <span id="battleCost" style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
             <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="background:linear-gradient(135deg,var(--neon-lime),#60cc00)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(0/20)</span></button>
         </div>
 
@@ -1001,6 +1070,44 @@
             </button>
             <br>
             <button class="ency-detail-close" onclick="closeEncyDetail()">Vissza ✖</button>
+        </div>
+    </div>
+</div>
+
+<!-- Battle Select -->
+<div class="battle-select-overlay" id="battleSelectOverlay">
+    <div class="battle-select-modal">
+        <h3>Válassz 3 kártyát a csatához!</h3>
+        <div class="battle-status">Költség: 10🪙</div>
+        <div class="battle-select-grid" id="battleSelectGrid"></div>
+        <div class="battle-actions">
+            <button class="battle-btn attack" id="battleStartBtn" onclick="startBattle()" disabled>Csata!</button>
+            <button class="battle-btn close" onclick="closeBattleSelect()">Mégse</button>
+        </div>
+    </div>
+</div>
+
+<!-- Battle Arena -->
+<div class="battle-overlay" id="battleOverlay">
+    <div class="battle-inner">
+        <div class="battle-header">
+            <h2>BRAINROT CSATA</h2>
+            <div class="battle-status" id="battleTurnStatus"></div>
+            <button class="encyclopedia-close" onclick="closeBattle()" style="position:absolute;right:8px;top:8px">Kilépés ✖</button>
+        </div>
+        <div class="battle-arena">
+            <div>
+                <div class="battle-side-label enemy">Ellenfél</div>
+                <div class="battle-side" id="enemySide"></div>
+            </div>
+            <div>
+                <div class="battle-side-label player">Te</div>
+                <div class="battle-side" id="playerSide"></div>
+            </div>
+        </div>
+        <div class="battle-log" id="battleLog"></div>
+        <div class="battle-actions">
+            <button class="battle-btn attack" id="battleAttackBtn" onclick="battleAttack()" disabled>Támadás!</button>
         </div>
     </div>
 </div>
@@ -1700,6 +1807,8 @@ function updateTokenDisplay() {
     const ready = state.talpieres >= 20;
     creatorBtn.disabled = !ready;
     document.getElementById('creatorProgress').textContent = ready ? '(20🪙)' : `(${state.talpieres}/20🪙)`;
+    const bb = document.getElementById('battleBtn');
+    if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
 }
 
 // ==================== FUSION ====================
@@ -2076,6 +2185,250 @@ function keepCreated() {
     saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
     creatorGeneratedCard = null;
     closeCreator();
+}
+
+// ==================== BATTLE SYSTEM ====================
+let battleState = null;
+
+function cardHP(card) {
+    const s = card.stats || {};
+    return Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 3) + 20;
+}
+
+function cardAtk(card) {
+    const s = card.stats || {};
+    return Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 6);
+}
+
+function openBattleSelect() {
+    if (state.collection.length < 3 || state.talpieres < 10) return;
+    AudioEngine.play('click');
+    battleState = { selectedIndices: [] };
+    const grid = document.getElementById('battleSelectGrid');
+    grid.innerHTML = '';
+    state.collection.forEach((card, idx) => {
+        const el = document.createElement('div');
+        el.className = 'battle-select-card';
+        const img = card.imgUrl || card.image || '';
+        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${card.name}</div>`;
+        el.onclick = () => {
+            AudioEngine.play('click');
+            const si = battleState.selectedIndices.indexOf(idx);
+            if (si > -1) { battleState.selectedIndices.splice(si, 1); el.classList.remove('picked'); }
+            else if (battleState.selectedIndices.length < 3) { battleState.selectedIndices.push(idx); el.classList.add('picked'); }
+            document.getElementById('battleStartBtn').disabled = battleState.selectedIndices.length !== 3;
+        };
+        grid.appendChild(el);
+    });
+    document.getElementById('battleStartBtn').disabled = true;
+    document.getElementById('battleSelectOverlay').classList.add('show');
+}
+
+function closeBattleSelect() { document.getElementById('battleSelectOverlay').classList.remove('show'); AudioEngine.play('click'); }
+
+function startBattle() {
+    if (!battleState || battleState.selectedIndices.length !== 3) return;
+    state.talpieres = Math.max(0, state.talpieres - 10);
+    saveState(); updateTokenDisplay();
+
+    const playerCards = battleState.selectedIndices.map(i => {
+        const c = state.collection[i];
+        return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), alive: true };
+    });
+
+    // Enemy: 3 random from all brainrot cards
+    const shuffled = [...allBrainrotCards].sort(() => Math.random() - 0.5);
+    const enemyCards = shuffled.slice(0, 3).map(c => {
+        const stats = { rizz: 30 + rnd(0,50), sigma: 30 + rnd(0,50), brainrot: 30 + rnd(0,50) };
+        const card = { ...c, stats, imgUrl: c.image };
+        return { ...card, hp: cardHP(card), maxHp: cardHP(card), atk: cardAtk(card), alive: true };
+    });
+
+    battleState = {
+        player: playerCards,
+        enemy: enemyCards,
+        selectedAttacker: -1,
+        selectedTarget: -1,
+        turn: 'player',
+        log: [],
+        over: false
+    };
+
+    closeBattleSelect();
+    document.getElementById('battleOverlay').classList.add('show');
+    AudioEngine.play('craft');
+    battleLog('Csata indul! Válaszd ki a kártyádat és a célpontot!');
+    renderBattle();
+}
+
+function closeBattle() {
+    document.getElementById('battleOverlay').classList.remove('show');
+    battleState = null;
+    AudioEngine.play('click');
+}
+
+function battleLog(msg) {
+    if (!battleState) return;
+    battleState.log.push(msg);
+    const el = document.getElementById('battleLog');
+    el.innerHTML = battleState.log.map(m => `<div>${m}</div>`).join('');
+    el.scrollTop = el.scrollHeight;
+}
+
+function renderBattle() {
+    if (!battleState) return;
+    const atkBtn = document.getElementById('battleAttackBtn');
+
+    // Render enemy side
+    const enemySide = document.getElementById('enemySide');
+    enemySide.innerHTML = '';
+    battleState.enemy.forEach((c, i) => {
+        const el = document.createElement('div');
+        const hpPct = Math.max(0, c.hp / c.maxHp * 100);
+        const hpClass = hpPct > 50 ? 'high' : hpPct > 25 ? 'mid' : 'low';
+        el.className = `battle-card${!c.alive ? ' dead' : ''}${battleState.selectedTarget === i ? ' target' : ''}`;
+        el.id = `enemy-${i}`;
+        const img = c.imgUrl || c.image || '';
+        el.innerHTML = `<img src="${img}" alt="${c.name}"><div class="bc-name">${c.name}</div><div class="bc-hp-bar"><div class="bc-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div><div class="bc-hp-text">${Math.max(0,c.hp)}/${c.maxHp}</div>`;
+        if (c.alive && battleState.turn === 'player' && !battleState.over) {
+            el.onclick = () => { battleState.selectedTarget = i; AudioEngine.play('click'); renderBattle(); };
+        }
+        enemySide.appendChild(el);
+    });
+
+    // Render player side
+    const playerSide = document.getElementById('playerSide');
+    playerSide.innerHTML = '';
+    battleState.player.forEach((c, i) => {
+        const el = document.createElement('div');
+        const hpPct = Math.max(0, c.hp / c.maxHp * 100);
+        const hpClass = hpPct > 50 ? 'high' : hpPct > 25 ? 'mid' : 'low';
+        el.className = `battle-card${!c.alive ? ' dead' : ''}${battleState.selectedAttacker === i ? ' selected' : ''}`;
+        el.id = `player-${i}`;
+        const img = c.imgUrl || c.image || '';
+        el.innerHTML = `<img src="${img}" alt="${c.name}"><div class="bc-name">${c.name}</div><div class="bc-hp-bar"><div class="bc-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div><div class="bc-hp-text">${Math.max(0,c.hp)}/${c.maxHp}</div>`;
+        if (c.alive && battleState.turn === 'player' && !battleState.over) {
+            el.onclick = () => { battleState.selectedAttacker = i; AudioEngine.play('click'); renderBattle(); };
+        }
+        playerSide.appendChild(el);
+    });
+
+    // Update status & attack button
+    if (battleState.over) {
+        document.getElementById('battleTurnStatus').textContent = battleState.winner === 'player' ? 'Győztél!' : 'Vesztettél!';
+        atkBtn.disabled = true;
+        atkBtn.textContent = 'Vége';
+    } else if (battleState.turn === 'player') {
+        document.getElementById('battleTurnStatus').textContent = 'A te köröd! Válassz támadót és célpontot!';
+        atkBtn.disabled = battleState.selectedAttacker < 0 || battleState.selectedTarget < 0;
+        atkBtn.textContent = 'Támadás!';
+    } else {
+        document.getElementById('battleTurnStatus').textContent = 'Ellenfél köre...';
+        atkBtn.disabled = true;
+    }
+}
+
+function showDamage(elementId, dmg) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.classList.add('hit');
+    const dmgEl = document.createElement('div');
+    dmgEl.className = 'battle-dmg';
+    dmgEl.textContent = `-${dmg}`;
+    el.appendChild(dmgEl);
+    setTimeout(() => { el.classList.remove('hit'); dmgEl.remove(); }, 1000);
+}
+
+function calcDamage(attacker, defender) {
+    const base = attacker.atk + rnd(3, 12);
+    const defense = Math.floor(defender.atk * 0.3);
+    return Math.max(1, base - defense + rnd(-3, 3));
+}
+
+function checkBattleEnd() {
+    const playerAlive = battleState.player.some(c => c.alive);
+    const enemyAlive = battleState.enemy.some(c => c.alive);
+    if (!playerAlive || !enemyAlive) {
+        battleState.over = true;
+        battleState.winner = playerAlive ? 'player' : 'enemy';
+        if (playerAlive) {
+            battleLog('<b style="color:var(--neon-lime)">Győzelem! Brainrotjaid diadalmaskodtak!</b>');
+            AudioEngine.play('reward');
+            state.talpieres += 5;
+            battleLog('Jutalom: <span class="log-dmg">+5🪙</span>');
+            saveState(); updateTokenDisplay();
+            createConfetti();
+        } else {
+            battleLog('<b style="color:var(--neon-mag)">Vereség! Az ellenfél erősebb volt.</b>');
+            AudioEngine.play('wrong');
+        }
+        renderBattle();
+        return true;
+    }
+    return false;
+}
+
+function battleAttack() {
+    if (!battleState || battleState.turn !== 'player' || battleState.over) return;
+    const ai = battleState.selectedAttacker;
+    const ti = battleState.selectedTarget;
+    if (ai < 0 || ti < 0) return;
+
+    const attacker = battleState.player[ai];
+    const target = battleState.enemy[ti];
+    const dmg = calcDamage(attacker, target);
+    target.hp -= dmg;
+    AudioEngine.play('correct');
+    showDamage(`enemy-${ti}`, dmg);
+    battleLog(`<span class="log-player">${attacker.name}</span> → <span class="log-enemy">${target.name}</span>: <span class="log-dmg">-${dmg} HP</span>`);
+
+    if (target.hp <= 0) {
+        target.hp = 0; target.alive = false;
+        battleLog(`<span class="log-enemy">${target.name}</span> megsemmisült!`);
+    }
+
+    battleState.selectedAttacker = -1;
+    battleState.selectedTarget = -1;
+    renderBattle();
+
+    if (checkBattleEnd()) return;
+
+    // Enemy turn
+    battleState.turn = 'enemy';
+    renderBattle();
+
+    setTimeout(() => {
+        enemyTurn();
+    }, 800);
+}
+
+function enemyTurn() {
+    if (!battleState || battleState.over) return;
+
+    const aliveEnemy = battleState.enemy.filter(c => c.alive);
+    const alivePlayer = battleState.player.filter(c => c.alive);
+    if (!aliveEnemy.length || !alivePlayer.length) { checkBattleEnd(); return; }
+
+    const attacker = aliveEnemy[rnd(0, aliveEnemy.length - 1)];
+    const target = alivePlayer[rnd(0, alivePlayer.length - 1)];
+    const dmg = calcDamage(attacker, target);
+    target.hp -= dmg;
+    AudioEngine.play('wrong');
+
+    const ti = battleState.player.indexOf(target);
+    showDamage(`player-${ti}`, dmg);
+    battleLog(`<span class="log-enemy">${attacker.name}</span> → <span class="log-player">${target.name}</span>: <span class="log-dmg">-${dmg} HP</span>`);
+
+    if (target.hp <= 0) {
+        target.hp = 0; target.alive = false;
+        battleLog(`<span class="log-player">${target.name}</span> megsemmisült!`);
+    }
+
+    renderBattle();
+    if (checkBattleEnd()) return;
+
+    battleState.turn = 'player';
+    renderBattle();
 }
 
 function renderCollection() {
