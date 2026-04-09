@@ -544,6 +544,9 @@
         .ci-img { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--void); display: block; }
         .ci-name { font-size: 0.5rem; color: var(--text-dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
         .ci-rarity { font-size: 0.45rem; font-weight: 800; }
+        .ci-power { font-size: 0.5rem; font-weight: 800; color: var(--neon-orange); margin-top: 1px; }
+        .ci-exhausted { position: relative; opacity: 0.5; }
+        .ci-exhausted::after { content: '😴'; position: absolute; top: 4px; right: 4px; font-size: 0.9rem; }
 
         /* === RARITY COLORS === */
         .rarity-common { color: #8888aa; }
@@ -1781,6 +1784,8 @@ function processAnswer(answer) {
         let xp=10;
         if(state.streak>=3)xp+=5; if(state.streak>=5)xp+=5; if(state.streak>=10)xp+=10;
         if(isFast){xp+=5; state.fastStreak=(state.fastStreak||0)+1; state.talpieres+=2;} else { state.fastStreak=0; state.talpieres++; }
+        // Recover exhausted cards
+        state.collection.forEach(c => { if(c.exhausted && c.exhausted > 0) c.exhausted--; });
         state.xp+=xp; state.score+=xp;
         AudioEngine.play('correct');
         if(state.streak>0&&state.streak%5===0) AudioEngine.play('streak');
@@ -2294,16 +2299,21 @@ function openBattleSelect() {
     grid.innerHTML = '';
     state.collection.forEach((card, idx) => {
         const el = document.createElement('div');
-        el.className = 'battle-select-card';
+        const isExhausted = card.exhausted && card.exhausted > 0;
+        el.className = 'battle-select-card' + (isExhausted ? ' ci-exhausted' : '');
         const img = card.imgUrl || card.image || '';
-        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${card.name}</div>`;
-        el.onclick = () => {
-            AudioEngine.play('click');
-            const si = battleState.selectedIndices.indexOf(idx);
-            if (si > -1) { battleState.selectedIndices.splice(si, 1); el.classList.remove('picked'); }
-            else if (battleState.selectedIndices.length < 3) { battleState.selectedIndices.push(idx); el.classList.add('picked'); }
-            document.getElementById('battleStartBtn').disabled = battleState.selectedIndices.length !== 3;
-        };
+        const s = card.stats || {};
+        const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${isExhausted ? '😴 ' : ''}${card.name}</div><div style="font-size:0.5rem;color:var(--neon-orange);font-weight:700">⚔️ ${power}${isExhausted ? ' (😴'+card.exhausted+')' : ''}</div>`;
+        if (!isExhausted) {
+            el.onclick = () => {
+                AudioEngine.play('click');
+                const si = battleState.selectedIndices.indexOf(idx);
+                if (si > -1) { battleState.selectedIndices.splice(si, 1); el.classList.remove('picked'); }
+                else if (battleState.selectedIndices.length < 3) { battleState.selectedIndices.push(idx); el.classList.add('picked'); }
+                document.getElementById('battleStartBtn').disabled = battleState.selectedIndices.length !== 3;
+            };
+        }
         grid.appendChild(el);
     });
     document.getElementById('battleStartBtn').disabled = true;
@@ -2337,6 +2347,7 @@ function startBattle() {
     battleState = {
         player: playerCards,
         enemy: enemyCards,
+        selectedIndices: battleState.selectedIndices,
         selectedAttacker: -1,
         selectedTarget: -1,
         phase: 'pick_attacker',
@@ -2491,6 +2502,13 @@ function checkBattleEnd() {
             battleLog('<b style="color:var(--neon-mag)">Vereség! Az ellenfél erősebb volt.</b>');
             document.getElementById('battlePhaseHint').innerHTML = '<div style="font-size:1.4rem;color:var(--neon-mag);margin:12px 0">💀 VERESÉG!</div><div style="color:var(--text-dim);font-size:0.85rem">Visszatérés 5 másodperc...</div>';
         }
+        // Mark player's battle cards as exhausted (5 correct answers to recover)
+        if (battleState.selectedIndices) {
+            battleState.selectedIndices.forEach(idx => {
+                if (state.collection[idx]) state.collection[idx].exhausted = 5;
+            });
+        }
+        saveState(); renderCollection();
         renderBattle();
         setTimeout(closeBattle, 5000);
         return true;
@@ -2743,10 +2761,12 @@ function renderCollection() {
     document.getElementById('collectionCount').textContent = state.collection.length;
     grid.innerHTML='';
     state.collection.forEach((item,idx)=>{
-        const el=document.createElement('div'); el.className='collection-item';
+        const el=document.createElement('div'); el.className='collection-item' + (item.exhausted ? ' ci-exhausted' : '');
         const imgSrc = item.imgUrl || item.image || '';
         const catBadge = item.category==='italian'?'🇮🇹':item.category==='fusion'?'🔬':'🧠';
-        el.innerHTML=`<img class="ci-img" src="${imgSrc}" alt="${item.name}" loading="lazy"><div class="ci-name">${catBadge} ${item.name.split(' ').slice(0,2).join(' ')}</div><div class="ci-rarity ${item.rarityClass}">★ ${item.rarity}</div>`;
+        const s = item.stats || {};
+        const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+        el.innerHTML=`<img class="ci-img" src="${imgSrc}" alt="${item.name}" loading="lazy"><div class="ci-name">${catBadge} ${item.name.split(' ').slice(0,2).join(' ')}</div><div class="ci-rarity ${item.rarityClass}">★ ${item.rarity}</div><div class="ci-power">⚔️ ${power}</div>`;
         el.onclick=()=>showDetail(idx); grid.appendChild(el);
     });
 }
@@ -2758,7 +2778,10 @@ function showDetail(idx) {
     document.getElementById('dcImg').src=item.imgUrl||item.image||'';
     document.getElementById('dcName').textContent=item.name;
     document.getElementById('dcRarity').innerHTML=`<span class="${item.rarityClass}">★ ${item.rarity} ★</span>`;
-    document.getElementById('dcStats').innerHTML=`<span class="dc-stat">😎 Rizz: ${item.stats?.rizz||'?'}</span><span class="dc-stat">🗿 Sigma: ${item.stats?.sigma||'?'}</span><span class="dc-stat">🧠 Brainrot: ${item.stats?.brainrot||'?'}</span>`;
+    const s = item.stats || {};
+    const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+    const exhaustedText = item.exhausted ? `<span class="dc-stat" style="color:var(--neon-orange)">😴 Kimerült (${item.exhausted} válasz múlva kész)</span>` : '<span class="dc-stat" style="color:var(--neon-lime)">✅ Pihent</span>';
+    document.getElementById('dcStats').innerHTML=`<span class="dc-stat">⚔️ Erő: ${power}</span><span class="dc-stat">😎 Rizz: ${s.rizz||'?'}</span><span class="dc-stat">🗿 Sigma: ${s.sigma||'?'}</span><span class="dc-stat">🧠 Brainrot: ${s.brainrot||'?'}</span>${exhaustedText}`;
     document.getElementById('dcFlavor').textContent=item.story||item.flavor||'';
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
