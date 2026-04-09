@@ -838,6 +838,28 @@
         .battle-select-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
         .battle-select-card .bsc-name { font-size: 0.6rem; font-weight: 700; margin-top: 3px; }
 
+        /* === ADMIN === */
+        .admin-overlay { display:none; position:fixed; inset:0; background:var(--void); z-index:300; overflow-y:auto; }
+        .admin-overlay.show { display:block; }
+        .admin-inner { max-width:700px; margin:0 auto; padding:12px 16px; }
+        .admin-header { text-align:center; padding:10px 0; position:relative; }
+        .admin-header h2 { font-size:1.3rem; font-weight:900; color:var(--neon-gold); }
+        .admin-tabs { display:flex; gap:6px; justify-content:center; margin:10px 0; flex-wrap:wrap; }
+        .admin-tab { font-family:'Outfit',sans-serif; font-size:0.75rem; font-weight:700; padding:6px 14px; border-radius:8px; border:1px solid var(--surface-3); background:var(--surface); color:var(--text-dim); cursor:pointer; }
+        .admin-tab.active { border-color:var(--neon-gold); color:var(--neon-gold); background:rgba(255,208,0,0.1); }
+        .admin-content { margin:8px 0; }
+        .admin-table { width:100%; border-collapse:collapse; font-size:0.75rem; }
+        .admin-table th { text-align:left; padding:6px 8px; background:var(--surface-2); color:var(--neon-cyan); font-weight:700; border-bottom:1px solid var(--surface-3); font-size:0.65rem; text-transform:uppercase; letter-spacing:1px; }
+        .admin-table td { padding:5px 8px; border-bottom:1px solid var(--surface-3); color:var(--text); }
+        .admin-table tr:hover td { background:var(--surface-2); }
+        .admin-correct { color:var(--neon-lime); }
+        .admin-wrong { color:var(--neon-mag); }
+        .admin-stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:8px; }
+        .admin-stat-card { background:var(--surface); border-radius:10px; padding:10px; border:1px solid var(--surface-3); text-align:center; }
+        .admin-stat-card .label { font-size:0.65rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; }
+        .admin-stat-card .value { font-size:1.4rem; font-weight:900; color:var(--neon-gold); }
+        .admin-stat-card .sub { font-size:0.65rem; color:var(--text-dim); }
+
         /* === EFFECTS === */
         .feedback-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); font-family: 'Outfit', sans-serif; font-size: 2.5rem; z-index: 100; pointer-events: none; text-align: center; }
         .feedback-popup.show { animation: popIn 0.7s ease forwards; }
@@ -870,7 +892,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>SIGMA MATEK GRIND</h1>
+        <h1 id="mainTitle">SIGMA MATEK GRIND</h1>
         <div class="subtitle">Zétény matekos arénája</div>
     </div>
 
@@ -1082,6 +1104,24 @@
     </div>
 </div>
 
+<!-- Admin Panel -->
+<div class="admin-overlay" id="adminOverlay">
+    <div class="admin-inner">
+        <div class="admin-header">
+            <h2>Admin Panel</h2>
+            <button class="encyclopedia-close" onclick="closeAdmin()" style="position:absolute;right:8px;top:8px">Bezárás ✖</button>
+        </div>
+        <div class="admin-tabs">
+            <button class="admin-tab active" onclick="showAdminTab('summary')">Összesítés</button>
+            <button class="admin-tab" onclick="showAdminTab('answers')">Válaszok</button>
+            <button class="admin-tab" onclick="showAdminTab('battles')">Csaták</button>
+            <button class="admin-tab" onclick="showAdminTab('creations')">Alkotások</button>
+            <button class="admin-tab" onclick="showAdminTab('all')">Minden</button>
+        </div>
+        <div class="admin-content" id="adminContent"></div>
+    </div>
+</div>
+
 <!-- Shop -->
 <div class="battle-select-overlay" id="shopOverlay">
     <div class="battle-select-modal">
@@ -1216,6 +1256,14 @@ function loadStateFromCloud() {
 
 try { initFirebase(); } catch(e) {}
 
+// ==================== EVENT LOG ====================
+function logEvent(type, data) {
+    if (!state.eventLog) state.eventLog = [];
+    state.eventLog.push({ t: Date.now(), type, ...data });
+    // Keep last 500 events
+    if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
+}
+
 // ==================== POLLINATIONS API ====================
 const POLLINATIONS_URL = 'https://image.pollinations.ai/prompt/';
 
@@ -1283,6 +1331,7 @@ const state = {
     // Leitner retry queue: [{type, params, box, dueAfter}]
     retryQueue: [],
     questionCount: 0,
+    eventLog: [],
 };
 
 const levels = [
@@ -1377,6 +1426,7 @@ function loadState() {
         if (p.typeStats) state.typeStats = p.typeStats;
         state.retryQueue = p.retryQueue || [];
         state.questionCount = p.questionCount || 0;
+        state.eventLog = p.eventLog || [];
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
     } else { localStorage.setItem('sigmaDay3', new Date().toDateString()); state.nextRewardAt = randReward(); }
@@ -1719,6 +1769,7 @@ function processAnswer(answer) {
     state.total++;
     const isCorrect = (answer === currentAnswer);
     recordAnswer(currentProblemType, isCorrect);
+    logEvent('answer', { type: currentProblemType, correct: isCorrect, answer, expected: currentAnswer, ms: elapsed, fast: isFast, problem: document.getElementById('problem').textContent.trim().slice(0,60) });
     const displayEl = currentAnswerType==='compare'
         ? document.querySelector(`.compare-btn:nth-child(${answer==='<'?1:answer==='='?2:3})`)
         : document.getElementById('pinDisplay');
@@ -1942,6 +1993,7 @@ function generateFusion() {
 function keepCrafted() {
     if(!window._lastCrafted) return;
     state.collection.push(window._lastCrafted);
+    logEvent('fusion', { name: window._lastCrafted.name, rarity: window._lastCrafted.rarity, fusedFrom: window._lastCrafted.fusedFrom });
     state.talpieres = Math.max(0, state.talpieres - 1);
     AudioEngine.play('token'); AudioEngine.speak("Fúziós brainrot hozzáadva a gyűjteményhez!");
     saveState(); renderCollection(); updateTokenDisplay(); checkBadges(); closeCrafting();
@@ -2212,6 +2264,7 @@ function renderCreatorResult(container) {
 function keepCreated() {
     if (!creatorGeneratedCard) return;
     state.collection.push(creatorGeneratedCard);
+    logEvent('creator', { name: creatorGeneratedCard.name, rarity: creatorGeneratedCard.rarity, ingredients: creatorGeneratedCard.ingredients });
     state.talpieres = Math.max(0, state.talpieres - 20);
     AudioEngine.play('token');
     AudioEngine.speak("Új brainrot hozzáadva a gyűjteményhez!");
@@ -2269,10 +2322,14 @@ function startBattle() {
         return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), alive: true };
     });
 
-    // Enemy: 3 random from all brainrot cards
+    // Enemy: 3 cards balanced to player strength
+    const playerAvg = Math.round(playerCards.reduce((s,c) => s + c.maxHp, 0) / 3);
     const shuffled = [...allBrainrotCards].sort(() => Math.random() - 0.5);
     const enemyCards = shuffled.slice(0, 3).map(c => {
-        const stats = { rizz: 30 + rnd(0,50), sigma: 30 + rnd(0,50), brainrot: 30 + rnd(0,50) };
+        // Match enemy stats to player average ± 20%
+        const variance = rnd(-20, 20);
+        const target = Math.max(30, Math.min(90, playerAvg - 20 + variance));
+        const stats = { rizz: target + rnd(-10,10), sigma: target + rnd(-10,10), brainrot: target + rnd(-10,10) };
         const card = { ...c, stats, imgUrl: c.image };
         return { ...card, hp: cardHP(card), maxHp: cardHP(card), atk: cardAtk(card), alive: true };
     });
@@ -2416,6 +2473,11 @@ function checkBattleEnd() {
         battleState.over = true;
         battleState.phase = 'over';
         battleState.winner = playerAlive ? 'player' : 'enemy';
+        logEvent('battle', {
+            result: battleState.winner,
+            player: battleState.player.map(c=>({name:c.name, hp:c.hp, maxHp:c.maxHp, alive:c.alive})),
+            enemy: battleState.enemy.map(c=>({name:c.name, hp:c.hp, maxHp:c.maxHp, alive:c.alive}))
+        });
         if (playerAlive) {
             AudioEngine.play('reward');
             state.talpieres += 5;
@@ -2552,6 +2614,7 @@ function openShop() {
             };
             state.collection.push(collectionCard);
             saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
+            logEvent('shop', { name: card.name, rarity: card.rarity, cost: 20 });
             AudioEngine.speak(`${card.name} megvásárolva!`);
             closeShop();
         };
@@ -2561,6 +2624,117 @@ function openShop() {
 }
 
 function closeShop() { document.getElementById('shopOverlay').classList.remove('show'); AudioEngine.play('click'); }
+
+// ==================== ADMIN PANEL ====================
+let adminTapCount = 0, adminTapTimer = null;
+document.addEventListener('DOMContentLoaded', () => {
+    const title = document.getElementById('mainTitle');
+    if (title) title.addEventListener('click', () => {
+        adminTapCount++;
+        clearTimeout(adminTapTimer);
+        adminTapTimer = setTimeout(() => adminTapCount = 0, 800);
+        if (adminTapCount >= 3) { adminTapCount = 0; openAdmin(); }
+    });
+});
+
+function openAdmin() {
+    document.getElementById('adminOverlay').classList.add('show');
+    showAdminTab('summary');
+}
+function closeAdmin() { document.getElementById('adminOverlay').classList.remove('show'); }
+
+function fmtTime(ts) {
+    const d = new Date(ts);
+    return `${d.getMonth()+1}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+}
+
+function showAdminTab(tab) {
+    document.querySelectorAll('.admin-tab').forEach((t,i) => {
+        t.classList.toggle('active', ['summary','answers','battles','creations','all'][i] === tab);
+    });
+    const c = document.getElementById('adminContent');
+    const log = state.eventLog || [];
+
+    if (tab === 'summary') {
+        const answers = log.filter(e => e.type === 'answer');
+        const correct = answers.filter(e => e.correct).length;
+        const total = answers.length;
+        const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+        const battles = log.filter(e => e.type === 'battle');
+        const wins = battles.filter(e => e.result === 'player').length;
+        const fusions = log.filter(e => e.type === 'fusion').length;
+        const creations = log.filter(e => e.type === 'creator').length;
+        const shops = log.filter(e => e.type === 'shop').length;
+        const avgMs = total > 0 ? Math.round(answers.reduce((s,e) => s + (e.ms||0), 0) / total / 1000 * 10) / 10 : 0;
+        const fastCount = answers.filter(e => e.fast).length;
+
+        // Per type stats
+        const types = {};
+        answers.forEach(a => {
+            if (!types[a.type]) types[a.type] = { c: 0, t: 0 };
+            types[a.type].t++;
+            if (a.correct) types[a.type].c++;
+        });
+
+        let typeHtml = '<div class="admin-stat-grid" style="margin-top:12px">';
+        const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Sorozat',ruleGame:'Szabályjáték',potlas:'Pótlás',compare:'Összehasonlítás',wordProblem:'Szöveges'};
+        Object.entries(types).forEach(([k,v]) => {
+            const r = v.t > 0 ? Math.round(v.c/v.t*100) : 0;
+            const col = r >= 80 ? 'var(--neon-lime)' : r >= 50 ? 'var(--neon-gold)' : 'var(--neon-mag)';
+            typeHtml += `<div class="admin-stat-card"><div class="label">${typeNames[k]||k}</div><div class="value" style="color:${col}">${r}%</div><div class="sub">${v.c}/${v.t}</div></div>`;
+        });
+        typeHtml += '</div>';
+
+        c.innerHTML = `
+            <div class="admin-stat-grid">
+                <div class="admin-stat-card"><div class="label">Összes válasz</div><div class="value">${total}</div></div>
+                <div class="admin-stat-card"><div class="label">Helyes</div><div class="value" style="color:var(--neon-lime)">${correct}</div><div class="sub">${pct}%</div></div>
+                <div class="admin-stat-card"><div class="label">Gyors válasz</div><div class="value">${fastCount}</div><div class="sub">${total>0?Math.round(fastCount/total*100):0}%</div></div>
+                <div class="admin-stat-card"><div class="label">Átlag idő</div><div class="value">${avgMs}s</div></div>
+                <div class="admin-stat-card"><div class="label">Csaták</div><div class="value">${battles.length}</div><div class="sub">${wins} győzelem</div></div>
+                <div class="admin-stat-card"><div class="label">Fúziók</div><div class="value">${fusions}</div></div>
+                <div class="admin-stat-card"><div class="label">Alkotások</div><div class="value">${creations}</div></div>
+                <div class="admin-stat-card"><div class="label">Vásárlások</div><div class="value">${shops}</div></div>
+                <div class="admin-stat-card"><div class="label">Tallér</div><div class="value">${state.talpieres}</div></div>
+                <div class="admin-stat-card"><div class="label">Gyűjtemény</div><div class="value">${state.collection.length}</div></div>
+            </div>
+            <h3 style="color:var(--neon-cyan);font-size:0.85rem;margin-top:14px">Feladattípus statisztika</h3>
+            ${typeHtml}
+        `;
+    } else if (tab === 'answers') {
+        const answers = log.filter(e => e.type === 'answer').reverse();
+        c.innerHTML = `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Feladat</th><th>Válasz</th><th>Helyes</th><th>ms</th></tr></thead><tbody>
+            ${answers.map(a => `<tr><td>${fmtTime(a.t)}</td><td>${a.type||''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.problem||''}</td><td>${a.answer}</td><td class="${a.correct?'admin-correct':'admin-wrong'}">${a.correct?'✅':'❌'} ${!a.correct?'(→'+a.expected+')':''}</td><td>${a.fast?'⚡':''}${Math.round((a.ms||0)/100)/10}s</td></tr>`).join('')}
+        </tbody></table>`;
+    } else if (tab === 'battles') {
+        const battles = log.filter(e => e.type === 'battle').reverse();
+        c.innerHTML = battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
+            `<table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
+            ${battles.map(b => `<tr><td>${fmtTime(b.t)}</td><td class="${b.result==='player'?'admin-correct':'admin-wrong'}">${b.result==='player'?'🏆 Győzelem':'💀 Vereség'}</td>
+            <td>${(b.player||[]).map(p=>`${p.name} (${p.hp}/${p.maxHp}${p.alive?'':'💀'})`).join(', ')}</td>
+            <td>${(b.enemy||[]).map(p=>`${p.name} (${p.hp}/${p.maxHp}${p.alive?'':'💀'})`).join(', ')}</td></tr>`).join('')}
+        </tbody></table>`;
+    } else if (tab === 'creations') {
+        const creations = log.filter(e => e.type === 'fusion' || e.type === 'creator' || e.type === 'shop').reverse();
+        c.innerHTML = creations.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt alkotás</div>' :
+            `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Név</th><th>Részletek</th></tr></thead><tbody>
+            ${creations.map(e => `<tr><td>${fmtTime(e.t)}</td><td>${e.type==='fusion'?'🔬 Fúzió':e.type==='creator'?'🎨 Készítő':'🛒 Bolt'}</td><td>${e.name||''}</td><td>${e.fusedFrom?e.fusedFrom.join(' + '):e.ingredients?Object.values(e.ingredients).join(', '):e.rarity||''}</td></tr>`).join('')}
+        </tbody></table>`;
+    } else {
+        const all = [...log].reverse();
+        c.innerHTML = `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Részletek</th></tr></thead><tbody>
+            ${all.map(e => {
+                let detail = '';
+                if (e.type==='answer') detail = `${e.correct?'✅':'❌'} ${e.type} "${e.problem||''}" (${Math.round((e.ms||0)/1000)}s)`;
+                else if (e.type==='battle') detail = `${e.result==='player'?'🏆':'💀'} ${(e.player||[]).map(p=>p.name).join(',')} vs ${(e.enemy||[]).map(p=>p.name).join(',')}`;
+                else if (e.type==='fusion') detail = `🔬 ${e.name} (${(e.fusedFrom||[]).join(' + ')})`;
+                else if (e.type==='creator') detail = `🎨 ${e.name}`;
+                else if (e.type==='shop') detail = `🛒 ${e.name} (-${e.cost}🪙)`;
+                return `<tr><td>${fmtTime(e.t)}</td><td>${e.type}</td><td>${detail}</td></tr>`;
+            }).join('')}
+        </tbody></table>`;
+    }
+}
 
 function renderCollection() {
     const section=document.getElementById('collectionSection'), grid=document.getElementById('collectionGrid');
