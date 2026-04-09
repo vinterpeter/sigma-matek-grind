@@ -2688,7 +2688,7 @@ function openShop() {
 function closeShop() { document.getElementById('shopOverlay').classList.remove('show'); AudioEngine.play('click'); }
 
 // ==================== ADMIN PANEL ====================
-let adminTapCount = 0, adminTapTimer = null;
+let adminTapCount = 0, adminTapTimer = null, adminPlayers = [], adminSelectedUid = null, adminCurrentTab = 'summary';
 document.addEventListener('DOMContentLoaded', () => {
     const title = document.getElementById('mainTitle');
     if (title) title.addEventListener('click', () => {
@@ -2700,10 +2700,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function openAdmin() {
-    // Ensure state is loaded (admin can be opened before game starts)
     if (!state.total && !state.eventLog.length) loadState();
     document.getElementById('adminOverlay').classList.add('show');
-    showAdminTab('summary');
+    loadAllPlayers();
 }
 function closeAdmin() { document.getElementById('adminOverlay').classList.remove('show'); }
 
@@ -2712,12 +2711,91 @@ function fmtTime(ts) {
     return `${d.getMonth()+1}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 }
 
+const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Sorozat',ruleGame:'Szabályjáték',potlas:'Pótlás',compare:'Összehasonlítás',wordProblem:'Szöveges'};
+
+function loadAllPlayers() {
+    const c = document.getElementById('adminContent');
+    c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim)">Játékosok betöltése...</div>';
+    if (db) {
+        db.collection('users').get().then(snap => {
+            adminPlayers = [];
+            snap.forEach(doc => adminPlayers.push({ uid: doc.id, ...doc.data() }));
+            // Also add local player if not in Firebase
+            if (!adminPlayers.find(p => p.uid === (fbUser?.uid))) {
+                adminPlayers.unshift({ uid: 'local', ...state, _local: true });
+            }
+            renderAdminPlayerList();
+        }).catch(() => {
+            adminPlayers = [{ uid: 'local', ...state, _local: true }];
+            renderAdminPlayerList();
+        });
+    } else {
+        adminPlayers = [{ uid: 'local', ...state, _local: true }];
+        renderAdminPlayerList();
+    }
+}
+
+function renderAdminPlayerList() {
+    const c = document.getElementById('adminContent');
+    if (!adminSelectedUid) {
+        // Show player list
+        const rankOf = (p) => {
+            const t = p.trophies || 0;
+            let rank = militaryRanks[0];
+            for (const r of militaryRanks) { if (t >= r.min) rank = r; }
+            return rank;
+        };
+        c.innerHTML = `<div style="margin-bottom:10px;font-size:0.8rem;color:var(--text-dim)">${adminPlayers.length} játékos</div>
+        <table class="admin-table"><thead><tr><th>Játékos</th><th>Válaszok</th><th>Helyes%</th><th>🪙</th><th>🏆</th><th>Rang</th><th>🃏</th></tr></thead><tbody>
+        ${adminPlayers.map(p => {
+            const rank = rankOf(p);
+            const pct = p.total > 0 ? Math.round((p.correct||0) / p.total * 100) : 0;
+            const pctCol = pct >= 80 ? 'var(--neon-lime)' : pct >= 50 ? 'var(--neon-gold)' : 'var(--neon-mag)';
+            return `<tr style="cursor:pointer" onclick="selectAdminPlayer('${p.uid}')">
+                <td>${p._local ? '📱 Helyi' : '☁️ ' + p.uid.slice(0,8)}</td>
+                <td>${p.total||0}</td>
+                <td style="color:${pctCol}">${pct}%</td>
+                <td>${p.talpieres||0}</td>
+                <td>${p.trophies||0}</td>
+                <td>${rank.icon} ${rank.name}</td>
+                <td>${(p.collection||[]).length}</td>
+            </tr>`;
+        }).join('')}
+        </tbody></table>`;
+    } else {
+        showAdminTab(adminCurrentTab);
+    }
+}
+
+function selectAdminPlayer(uid) {
+    adminSelectedUid = uid;
+    adminCurrentTab = 'summary';
+    showAdminTab('summary');
+}
+
+function adminBack() {
+    adminSelectedUid = null;
+    renderAdminPlayerList();
+}
+
+function getAdminPlayerData() {
+    if (!adminSelectedUid) return state;
+    return adminPlayers.find(p => p.uid === adminSelectedUid) || state;
+}
+
 function showAdminTab(tab) {
+    adminCurrentTab = tab;
+    const tabs = ['summary','answers','battles','creations','all'];
     document.querySelectorAll('.admin-tab').forEach((t,i) => {
-        t.classList.toggle('active', ['summary','answers','battles','creations','all'][i] === tab);
+        t.classList.toggle('active', tabs[i] === tab);
     });
     const c = document.getElementById('adminContent');
-    const log = state.eventLog || [];
+    const p = getAdminPlayerData();
+    const log = p.eventLog || [];
+    const rank = getMilitaryRank.call ? (function(){ const t=p.trophies||0; let r=militaryRanks[0]; for(const x of militaryRanks){if(t>=x.min)r=x;} return r; })() : militaryRanks[0];
+
+    const backBtn = `<button class="admin-tab" onclick="adminBack()" style="margin-bottom:8px">← Vissza a listához</button>
+        <span style="color:var(--neon-gold);font-size:0.85rem;font-weight:700;margin-left:8px">${rank.icon} ${rank.name} | 🏆 ${p.trophies||0} | ${p._local?'📱 Helyi':'☁️ '+adminSelectedUid.slice(0,8)}</span><br><br>`;
 
     if (tab === 'summary') {
         const answers = log.filter(e => e.type === 'answer');
@@ -2731,25 +2809,16 @@ function showAdminTab(tab) {
         const shops = log.filter(e => e.type === 'shop').length;
         const avgMs = total > 0 ? Math.round(answers.reduce((s,e) => s + (e.ms||0), 0) / total / 1000 * 10) / 10 : 0;
         const fastCount = answers.filter(e => e.fast).length;
-
-        // Per type stats
         const types = {};
-        answers.forEach(a => {
-            if (!types[a.type]) types[a.type] = { c: 0, t: 0 };
-            types[a.type].t++;
-            if (a.correct) types[a.type].c++;
-        });
-
+        answers.forEach(a => { if(!types[a.type]) types[a.type]={c:0,t:0}; types[a.type].t++; if(a.correct) types[a.type].c++; });
         let typeHtml = '<div class="admin-stat-grid" style="margin-top:12px">';
-        const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Sorozat',ruleGame:'Szabályjáték',potlas:'Pótlás',compare:'Összehasonlítás',wordProblem:'Szöveges'};
         Object.entries(types).forEach(([k,v]) => {
-            const r = v.t > 0 ? Math.round(v.c/v.t*100) : 0;
-            const col = r >= 80 ? 'var(--neon-lime)' : r >= 50 ? 'var(--neon-gold)' : 'var(--neon-mag)';
+            const r = v.t>0?Math.round(v.c/v.t*100):0;
+            const col = r>=80?'var(--neon-lime)':r>=50?'var(--neon-gold)':'var(--neon-mag)';
             typeHtml += `<div class="admin-stat-card"><div class="label">${typeNames[k]||k}</div><div class="value" style="color:${col}">${r}%</div><div class="sub">${v.c}/${v.t}</div></div>`;
         });
         typeHtml += '</div>';
-
-        c.innerHTML = `
+        c.innerHTML = backBtn + `
             <div class="admin-stat-grid">
                 <div class="admin-stat-card"><div class="label">Összes válasz</div><div class="value">${total}</div></div>
                 <div class="admin-stat-card"><div class="label">Helyes</div><div class="value" style="color:var(--neon-lime)">${correct}</div><div class="sub">${pct}%</div></div>
@@ -2759,42 +2828,42 @@ function showAdminTab(tab) {
                 <div class="admin-stat-card"><div class="label">Fúziók</div><div class="value">${fusions}</div></div>
                 <div class="admin-stat-card"><div class="label">Alkotások</div><div class="value">${creations}</div></div>
                 <div class="admin-stat-card"><div class="label">Vásárlások</div><div class="value">${shops}</div></div>
-                <div class="admin-stat-card"><div class="label">Tallér</div><div class="value">${state.talpieres}</div></div>
-                <div class="admin-stat-card"><div class="label">Gyűjtemény</div><div class="value">${state.collection.length}</div></div>
+                <div class="admin-stat-card"><div class="label">Tallér</div><div class="value">${p.talpieres||0}</div></div>
+                <div class="admin-stat-card"><div class="label">Gyűjtemény</div><div class="value">${(p.collection||[]).length}</div></div>
+                <div class="admin-stat-card"><div class="label">Nehézség</div><div class="value">${Math.round((p.battleDifficulty||1)*100)/100}x</div></div>
             </div>
             <h3 style="color:var(--neon-cyan);font-size:0.85rem;margin-top:14px">Feladattípus statisztika</h3>
-            ${typeHtml}
-        `;
+            ${typeHtml}`;
     } else if (tab === 'answers') {
         const answers = log.filter(e => e.type === 'answer').reverse();
-        c.innerHTML = `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Feladat</th><th>Válasz</th><th>Helyes</th><th>ms</th></tr></thead><tbody>
-            ${answers.map(a => `<tr><td>${fmtTime(a.t)}</td><td>${a.type||''}</td><td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.problem||''}</td><td>${a.answer}</td><td class="${a.correct?'admin-correct':'admin-wrong'}">${a.correct?'✅':'❌'} ${!a.correct?'(→'+a.expected+')':''}</td><td>${a.fast?'⚡':''}${Math.round((a.ms||0)/100)/10}s</td></tr>`).join('')}
+        c.innerHTML = backBtn + `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Feladat</th><th>Válasz</th><th>Helyes</th><th>Idő</th></tr></thead><tbody>
+            ${answers.map(a => `<tr><td>${fmtTime(a.t)}</td><td>${typeNames[a.type]||a.type||''}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.problem||''}</td><td>${a.answer}</td><td class="${a.correct?'admin-correct':'admin-wrong'}">${a.correct?'✅':'❌'} ${!a.correct?'(→'+a.expected+')':''}</td><td>${a.fast?'⚡':''}${Math.round((a.ms||0)/100)/10}s</td></tr>`).join('')}
         </tbody></table>`;
     } else if (tab === 'battles') {
         const battles = log.filter(e => e.type === 'battle').reverse();
-        c.innerHTML = battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
-            `<table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
-            ${battles.map(b => `<tr><td>${fmtTime(b.t)}</td><td class="${b.result==='player'?'admin-correct':'admin-wrong'}">${b.result==='player'?'🏆 Győzelem':'💀 Vereség'}</td>
-            <td>${(b.player||[]).map(p=>`${p.name} (${p.hp}/${p.maxHp}${p.alive?'':'💀'})`).join(', ')}</td>
-            <td>${(b.enemy||[]).map(p=>`${p.name} (${p.hp}/${p.maxHp}${p.alive?'':'💀'})`).join(', ')}</td></tr>`).join('')}
-        </tbody></table>`;
+        c.innerHTML = backBtn + (battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
+            `<table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Nehézség</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
+            ${battles.map(b => `<tr><td>${fmtTime(b.t)}</td><td class="${b.result==='player'?'admin-correct':'admin-wrong'}">${b.result==='player'?'🏆':'💀'}</td><td>${b.difficulty||'?'}x</td>
+            <td>${(b.player||[]).map(x=>`${x.name}(${x.hp}/${x.maxHp}${x.alive?'':'💀'})`).join(', ')}</td>
+            <td>${(b.enemy||[]).map(x=>`${x.name}(${x.hp}/${x.maxHp}${x.alive?'':'💀'})`).join(', ')}</td></tr>`).join('')}
+        </tbody></table>`);
     } else if (tab === 'creations') {
-        const creations = log.filter(e => e.type === 'fusion' || e.type === 'creator' || e.type === 'shop').reverse();
-        c.innerHTML = creations.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt alkotás</div>' :
+        const creations = log.filter(e => e.type==='fusion'||e.type==='creator'||e.type==='shop').reverse();
+        c.innerHTML = backBtn + (creations.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt alkotás</div>' :
             `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Név</th><th>Részletek</th></tr></thead><tbody>
-            ${creations.map(e => `<tr><td>${fmtTime(e.t)}</td><td>${e.type==='fusion'?'🔬 Fúzió':e.type==='creator'?'🎨 Készítő':'🛒 Bolt'}</td><td>${e.name||''}</td><td>${e.fusedFrom?e.fusedFrom.join(' + '):e.ingredients?Object.values(e.ingredients).join(', '):e.rarity||''}</td></tr>`).join('')}
-        </tbody></table>`;
+            ${creations.map(e => `<tr><td>${fmtTime(e.t)}</td><td>${e.type==='fusion'?'🔬':e.type==='creator'?'🎨':'🛒'}</td><td>${e.name||''}</td><td>${e.fusedFrom?e.fusedFrom.join('+'):e.ingredients?Object.values(e.ingredients).join(', '):e.rarity||''}</td></tr>`).join('')}
+        </tbody></table>`);
     } else {
         const all = [...log].reverse();
-        c.innerHTML = `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Részletek</th></tr></thead><tbody>
+        c.innerHTML = backBtn + `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Részletek</th></tr></thead><tbody>
             ${all.map(e => {
-                let detail = '';
-                if (e.type==='answer') detail = `${e.correct?'✅':'❌'} ${e.type} "${e.problem||''}" (${Math.round((e.ms||0)/1000)}s)`;
-                else if (e.type==='battle') detail = `${e.result==='player'?'🏆':'💀'} ${(e.player||[]).map(p=>p.name).join(',')} vs ${(e.enemy||[]).map(p=>p.name).join(',')}`;
-                else if (e.type==='fusion') detail = `🔬 ${e.name} (${(e.fusedFrom||[]).join(' + ')})`;
-                else if (e.type==='creator') detail = `🎨 ${e.name}`;
-                else if (e.type==='shop') detail = `🛒 ${e.name} (-${e.cost}🪙)`;
-                return `<tr><td>${fmtTime(e.t)}</td><td>${e.type}</td><td>${detail}</td></tr>`;
+                let d = '';
+                if(e.type==='answer') d=`${e.correct?'✅':'❌'} ${typeNames[e.type]||e.type} "${(e.problem||'').slice(0,30)}" (${Math.round((e.ms||0)/1000)}s)`;
+                else if(e.type==='battle') d=`${e.result==='player'?'🏆':'💀'} ${(e.player||[]).map(x=>x.name).join(',')} vs ${(e.enemy||[]).map(x=>x.name).join(',')}`;
+                else if(e.type==='fusion') d=`🔬 ${e.name} (${(e.fusedFrom||[]).join('+')})`;
+                else if(e.type==='creator') d=`🎨 ${e.name}`;
+                else if(e.type==='shop') d=`🛒 ${e.name}`;
+                return `<tr><td>${fmtTime(e.t)}</td><td>${e.type}</td><td>${d}</td></tr>`;
             }).join('')}
         </tbody></table>`;
     }
