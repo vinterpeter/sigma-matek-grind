@@ -1942,10 +1942,6 @@ function makeRod(n) {
 
 function buyHint() {
     if (state.talpieres < 1) return;
-    if (currentProblemType === 'ruleGame' || currentProblemType === 'sequence') {
-        AudioEngine.speak('Ehhez a feladathoz nincs segítség.');
-        return;
-    }
     state.talpieres--;
     saveState(); updateTokenDisplay();
     logEvent('hint', { type: currentProblemType });
@@ -1989,6 +1985,59 @@ function showHint() {
                     // Fallback: just show answer rod
                     html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
                 }
+            }
+        } else {
+            html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+        }
+    } else if (currentProblemType === 'ruleGame') {
+        // Rule game: figure out the rule from visible pairs, show the operation on the missing one
+        const cells = document.querySelectorAll('.rule-cell');
+        let inp = -1, rule = 0;
+        // Find the rule from first visible pair
+        if (cells.length >= 2) {
+            const firstIn = parseInt(cells[0].textContent);
+            const firstOut = parseInt(cells[1].textContent);
+            if (!isNaN(firstIn) && !isNaN(firstOut)) rule = firstOut - firstIn;
+        }
+        // Find the input for the missing output
+        for (let i = 0; i < cells.length; i += 2) {
+            if (i+1 < cells.length && cells[i+1].textContent.trim() === '?') {
+                inp = parseInt(cells[i].textContent);
+                break;
+            }
+        }
+        if (inp >= 0 && rule !== 0) {
+            const op = rule > 0 ? '+' : '−';
+            const absRule = Math.abs(rule);
+            html = `<div style="text-align:center;color:var(--text);margin:8px 0;font-size:0.9rem">${inp} ${op} ${absRule} = ?</div>`;
+            html += renderRodEquation(rule > 0 ? inp : inp, op, absRule, currentAnswer);
+        } else {
+            html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+        }
+    } else if (currentProblemType === 'sequence') {
+        // Sequence: figure out step from visible numbers, show operation
+        const seqNums = document.querySelectorAll('.seq-num');
+        let step = 0, prevVal = -1;
+        for (const el of seqNums) {
+            const v = parseInt(el.textContent);
+            if (!isNaN(v) && prevVal >= 0) { step = v - prevVal; break; }
+            if (!isNaN(v)) prevVal = v;
+        }
+        if (step !== 0) {
+            // Find the number before the ?
+            let before = -1;
+            for (let i = 0; i < seqNums.length; i++) {
+                if (seqNums[i].textContent.trim() === '?' && i > 0) {
+                    before = parseInt(seqNums[i-1].textContent);
+                    break;
+                }
+            }
+            if (before >= 0) {
+                const op = step > 0 ? '+' : '−';
+                html = `<div style="text-align:center;color:var(--text);margin:8px 0;font-size:0.9rem">${before} ${op} ${Math.abs(step)} = ?</div>`;
+                html += renderRodEquation(step > 0 ? before : before, op, Math.abs(step), currentAnswer);
+            } else {
+                html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
             }
         } else {
             html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
