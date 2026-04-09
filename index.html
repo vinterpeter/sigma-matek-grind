@@ -2417,17 +2417,20 @@ function checkBattleEnd() {
         battleState.phase = 'over';
         battleState.winner = playerAlive ? 'player' : 'enemy';
         if (playerAlive) {
-            battleLog('<b style="color:var(--neon-lime)">Győzelem! Brainrotjaid diadalmaskodtak!</b>');
             AudioEngine.play('reward');
             state.talpieres += 5;
-            battleLog('Jutalom: <span class="log-dmg">+5🪙</span>');
             saveState(); updateTokenDisplay();
             setTimeout(createConfetti, 300);
+            battleLog('<b style="color:var(--neon-lime)">Győzelem! Brainrotjaid diadalmaskodtak!</b>');
+            battleLog('Jutalom: <span class="log-dmg">+5🪙</span>');
+            document.getElementById('battlePhaseHint').innerHTML = '<div style="font-size:1.4rem;color:var(--neon-lime);margin:12px 0">🏆 GYŐZELEM! +5🪙</div><div style="color:var(--text-dim);font-size:0.85rem">Visszatérés 5 másodperc...</div>';
         } else {
-            battleLog('<b style="color:var(--neon-mag)">Vereség! Az ellenfél erősebb volt.</b>');
             AudioEngine.play('wrong');
+            battleLog('<b style="color:var(--neon-mag)">Vereség! Az ellenfél erősebb volt.</b>');
+            document.getElementById('battlePhaseHint').innerHTML = '<div style="font-size:1.4rem;color:var(--neon-mag);margin:12px 0">💀 VERESÉG!</div><div style="color:var(--text-dim);font-size:0.85rem">Visszatérés 5 másodperc...</div>';
         }
         renderBattle();
+        setTimeout(closeBattle, 5000);
         return true;
     }
     return false;
