@@ -2758,13 +2758,14 @@ function loadAllPlayers() {
 
 function renderAdminPlayerList() {
     const c = document.getElementById('adminContent');
-    // Auto-select if only one player
-    if (!adminSelectedUid && adminPlayers.length === 1) {
-        adminSelectedUid = adminPlayers[0].uid;
+    // Auto-select local player
+    if (!adminSelectedUid) {
+        adminSelectedUid = 'local';
         showAdminTab('summary');
         return;
     }
-    if (!adminSelectedUid) {
+    if (adminSelectedUid === 'list') {
+        adminSelectedUid = null;
         // Show player list
         const rankOf = (p) => {
             const t = p.trophies || 0;
@@ -2801,7 +2802,7 @@ function selectAdminPlayer(uid) {
 }
 
 function adminBack() {
-    adminSelectedUid = null;
+    adminSelectedUid = 'list';
     renderAdminPlayerList();
 }
 
