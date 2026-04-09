@@ -1602,8 +1602,7 @@ function genRuleGame() {
     if(pairs.length<4) return genAddition();
     const missingIdx = rnd(1,3);
     currentAnswer = pairs[missingIdx].out; currentAnswerType = 'number';
-    const ruleSign = rule>0?'+':'−';
-    document.getElementById('problemLabel').textContent = `Szabályjáték: a gép ${ruleSign}${Math.abs(rule)}-t csinál`;
+    document.getElementById('problemLabel').textContent = 'Szabályjáték: mit csinál a gép?';
     let html = '<div class="rule-table">';
     pairs.forEach((p,i) => {
         html += `<div class="rule-row">
