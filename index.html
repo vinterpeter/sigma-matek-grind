@@ -1976,11 +1976,11 @@ function showHint() {
 
     content.innerHTML = html;
 
-    // Render legend as example combinations
+    // Render legend: 1-10 only
     const legend = document.getElementById('rodLegend');
     let lhtml = '';
-    for (let i = 1; i <= 20; i++) {
-        lhtml += `<div class="rod-legend-item">${renderRodNumber(i)}<div class="rod-val">${i}</div></div>`;
+    for (let i = 1; i <= 10; i++) {
+        lhtml += `<div class="rod-legend-item">${makeRod(i)}<div class="rod-val">${i}</div></div>`;
     }
     legend.innerHTML = lhtml;
 
@@ -2010,18 +2010,31 @@ function renderRodProblem() {
     const result = rIsQ ? currentAnswer : parseInt(parts[4]);
 
     let html = '';
-    const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
-    const rodB = bIsQ ? makeRodMystery(b) : renderRodNumber(b);
-    const rodR = rIsQ ? makeRodMystery(result) : renderRodNumber(result);
-    const lblA = aIsQ ? '?' : a;
-    const lblB = bIsQ ? '?' : b;
-    const lblR = rIsQ ? '?' : result;
 
-    html += `<div class="rod-row">${rodA}<div class="rod-label">${lblA}</div></div>`;
-    html += `<div class="rod-row"><div class="rod-op">${op}</div></div>`;
-    html += `<div class="rod-row">${rodB}<div class="rod-label">${lblB}</div></div>`;
-    html += `<div class="rod-row"><div class="rod-op">=</div></div>`;
-    html += `<div class="rod-row">${rodR}<div class="rod-label">${lblR}</div></div>`;
+    if (op === '−' && a > 10 && !aIsQ && !bIsQ) {
+        // Subtraction crossing 10: show decomposition method
+        const over10 = a - 10; // the part above 10
+        const rest = b - over10; // what's left to subtract from 10
+        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
+        html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label" style="margin-left:4px">${rIsQ ? '?' : result}</div><div style="margin-left:12px">${renderRodNumber(b)}<div class="rod-label">${b}</div></div></div>`;
+        if (over10 > 0 && rest > 0 && rest <= 10) {
+            html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px;text-align:center">Bontsd fel a ${b}-t: ${over10} + ${rest}</div>`;
+            html += `<div class="rod-row">${makeRod(10)}<div class="rod-label">10</div><div style="margin-left:8px">${makeRod(over10)}<div class="rod-label">${over10}</div></div><div style="margin-left:4px">${makeRod(rest)}<div class="rod-label">${rest}</div></div></div>`;
+            html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px;text-align:center">10 − ${rest} = ${10-rest}</div>`;
+            html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label">${rIsQ ? '?' : result}</div></div>`;
+        }
+    } else {
+        // Addition or simple problems
+        const rodA = aIsQ ? makeRodMystery(a) : renderRodNumber(a);
+        const rodB = bIsQ ? makeRodMystery(b) : renderRodNumber(b);
+        const rodR = rIsQ ? makeRodMystery(result) : renderRodNumber(result);
+
+        html += `<div class="rod-row">${rodA}<div class="rod-label">${aIsQ ? '?' : a}</div></div>`;
+        html += `<div class="rod-row"><div class="rod-op">${op}</div></div>`;
+        html += `<div class="rod-row">${rodB}<div class="rod-label">${bIsQ ? '?' : b}</div></div>`;
+        html += `<div class="rod-row"><div class="rod-op">=</div></div>`;
+        html += `<div class="rod-row">${rodR}<div class="rod-label">${rIsQ ? '?' : result}</div></div>`;
+    }
     return html;
 }
 
