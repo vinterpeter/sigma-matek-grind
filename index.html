@@ -1279,10 +1279,10 @@ function loadStateFromCloud() {
 try { initFirebase(); } catch(e) {}
 
 // ==================== EVENT LOG ====================
-function logEvent(type, data) {
+function logEvent(evType, data) {
     if (!state.eventLog) state.eventLog = [];
     if (!Array.isArray(state.eventLog)) state.eventLog = [];
-    state.eventLog.push({ t: Date.now(), type, ...data });
+    state.eventLog.push({ t: Date.now(), evType, ...data });
     if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
 }
 // Debug: call window.debugState() in console
@@ -2826,15 +2826,15 @@ function showAdminTab(tab) {
         <span style="color:var(--neon-gold);font-size:0.85rem;font-weight:700;margin-left:8px">${rank.icon} ${rank.name} | 🏆 ${p.trophies||0} | ${p._local?'📱 Helyi':'☁️ '+adminSelectedUid.slice(0,8)}</span><br><br>`;
 
     if (tab === 'summary') {
-        const answers = log.filter(e => e.type === 'answer');
+        const answers = log.filter(e => e.evType === 'answer');
         const correct = answers.filter(e => e.correct).length;
         const total = answers.length;
         const pct = total > 0 ? Math.round(correct / total * 100) : 0;
-        const battles = log.filter(e => e.type === 'battle');
+        const battles = log.filter(e => e.evType === 'battle');
         const wins = battles.filter(e => e.result === 'player').length;
-        const fusions = log.filter(e => e.type === 'fusion').length;
-        const creations = log.filter(e => e.type === 'creator').length;
-        const shops = log.filter(e => e.type === 'shop').length;
+        const fusions = log.filter(e => e.evType === 'fusion').length;
+        const creations = log.filter(e => e.evType === 'creator').length;
+        const shops = log.filter(e => e.evType === 'shop').length;
         const avgMs = total > 0 ? Math.round(answers.reduce((s,e) => s + (e.ms||0), 0) / total / 1000 * 10) / 10 : 0;
         const fastCount = answers.filter(e => e.fast).length;
         const types = {};
@@ -2863,12 +2863,12 @@ function showAdminTab(tab) {
             <h3 style="color:var(--neon-cyan);font-size:0.85rem;margin-top:14px">Feladattípus statisztika</h3>
             ${typeHtml}`;
     } else if (tab === 'answers') {
-        const answers = log.filter(e => e.type === 'answer').reverse();
+        const answers = log.filter(e => e.evType === 'answer').reverse();
         c.innerHTML = backBtn + `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Feladat</th><th>Válasz</th><th>Helyes</th><th>Idő</th></tr></thead><tbody>
             ${answers.map(a => `<tr><td>${fmtTime(a.t)}</td><td>${typeNames[a.type]||a.type||''}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${a.problem||''}</td><td>${a.answer}</td><td class="${a.correct?'admin-correct':'admin-wrong'}">${a.correct?'✅':'❌'} ${!a.correct?'(→'+a.expected+')':''}</td><td>${a.fast?'⚡':''}${Math.round((a.ms||0)/100)/10}s</td></tr>`).join('')}
         </tbody></table>`;
     } else if (tab === 'battles') {
-        const battles = log.filter(e => e.type === 'battle').reverse();
+        const battles = log.filter(e => e.evType === 'battle').reverse();
         c.innerHTML = backBtn + (battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
             `<table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Nehézség</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
             ${battles.map(b => `<tr><td>${fmtTime(b.t)}</td><td class="${b.result==='player'?'admin-correct':'admin-wrong'}">${b.result==='player'?'🏆':'💀'}</td><td>${b.difficulty||'?'}x</td>
@@ -2876,22 +2876,22 @@ function showAdminTab(tab) {
             <td>${(b.enemy||[]).map(x=>`${x.name}(${x.hp}/${x.maxHp}${x.alive?'':'💀'})`).join(', ')}</td></tr>`).join('')}
         </tbody></table>`);
     } else if (tab === 'creations') {
-        const creations = log.filter(e => e.type==='fusion'||e.type==='creator'||e.type==='shop').reverse();
+        const creations = log.filter(e => e.evType==='fusion'||e.evType==='creator'||e.evType==='shop').reverse();
         c.innerHTML = backBtn + (creations.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt alkotás</div>' :
             `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Név</th><th>Részletek</th></tr></thead><tbody>
-            ${creations.map(e => `<tr><td>${fmtTime(e.t)}</td><td>${e.type==='fusion'?'🔬':e.type==='creator'?'🎨':'🛒'}</td><td>${e.name||''}</td><td>${e.fusedFrom?e.fusedFrom.join('+'):e.ingredients?Object.values(e.ingredients).join(', '):e.rarity||''}</td></tr>`).join('')}
+            ${creations.map(e => `<tr><td>${fmtTime(e.t)}</td><td>${e.evType==='fusion'?'🔬':e.evType==='creator'?'🎨':'🛒'}</td><td>${e.name||''}</td><td>${e.fusedFrom?e.fusedFrom.join('+'):e.ingredients?Object.values(e.ingredients).join(', '):e.rarity||''}</td></tr>`).join('')}
         </tbody></table>`);
     } else {
         const all = [...log].reverse();
         c.innerHTML = backBtn + `<table class="admin-table"><thead><tr><th>Idő</th><th>Típus</th><th>Részletek</th></tr></thead><tbody>
             ${all.map(e => {
                 let d = '';
-                if(e.type==='answer') d=`${e.correct?'✅':'❌'} ${typeNames[e.type]||e.type} "${(e.problem||'').slice(0,30)}" (${Math.round((e.ms||0)/1000)}s)`;
-                else if(e.type==='battle') d=`${e.result==='player'?'🏆':'💀'} ${(e.player||[]).map(x=>x.name).join(',')} vs ${(e.enemy||[]).map(x=>x.name).join(',')}`;
-                else if(e.type==='fusion') d=`🔬 ${e.name} (${(e.fusedFrom||[]).join('+')})`;
-                else if(e.type==='creator') d=`🎨 ${e.name}`;
-                else if(e.type==='shop') d=`🛒 ${e.name}`;
-                return `<tr><td>${fmtTime(e.t)}</td><td>${e.type}</td><td>${d}</td></tr>`;
+                if(e.evType==='answer') d=`${e.correct?'✅':'❌'} ${typeNames[e.type]||e.type||''} "${(e.problem||'').slice(0,30)}" (${Math.round((e.ms||0)/1000)}s)`;
+                else if(e.evType==='battle') d=`${e.result==='player'?'🏆':'💀'} ${(e.player||[]).map(x=>x.name).join(',')} vs ${(e.enemy||[]).map(x=>x.name).join(',')}`;
+                else if(e.evType==='fusion') d=`🔬 ${e.name} (${(e.fusedFrom||[]).join('+')})`;
+                else if(e.evType==='creator') d=`🎨 ${e.name}`;
+                else if(e.evType==='shop') d=`🛒 ${e.name}`;
+                return `<tr><td>${fmtTime(e.t)}</td><td>${e.evType}</td><td>${d}</td></tr>`;
             }).join('')}
         </tbody></table>`;
     }
