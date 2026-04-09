@@ -2012,16 +2012,24 @@ function renderRodProblem() {
     let html = '';
 
     if (op === '−' && a > 10 && !aIsQ && !bIsQ) {
-        // Subtraction crossing 10: show decomposition method
-        const over10 = a - 10; // the part above 10
-        const rest = b - over10; // what's left to subtract from 10
-        html += `<div class="rod-row">${renderRodNumber(a)}<div class="rod-label">${a}</div></div>`;
-        html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label" style="margin-left:4px">${rIsQ ? '?' : result}</div><div style="margin-left:12px">${renderRodNumber(b)}<div class="rod-label">${b}</div></div></div>`;
-        if (over10 > 0 && rest > 0 && rest <= 10) {
-            html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px;text-align:center">Bontsd fel a ${b}-t: ${over10} + ${rest}</div>`;
-            html += `<div class="rod-row">${makeRod(10)}<div class="rod-label">10</div><div style="margin-left:8px">${makeRod(over10)}<div class="rod-label">${over10}</div></div><div style="margin-left:4px">${makeRod(rest)}<div class="rod-label">${rest}</div></div></div>`;
-            html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px;text-align:center">10 − ${rest} = ${10-rest}</div>`;
-            html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label">${rIsQ ? '?' : result}</div></div>`;
+        const over10 = a - 10; // part above 10
+        html += `<div class="rod-row">${makeRod(10)}${makeRod(over10)}<div class="rod-label">${a}</div></div>`;
+        if (result > 10) {
+            // Result > 10: the 10 stays, show remainder as mystery
+            // 16 - 4: [10][6] then [10][?][4]
+            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}<div class="rod-label" style="margin-left:4px">?</div>${makeRod(b)}<div class="rod-label">${b}</div></div>`;
+        } else {
+            // Result <= 10: crossing 10, decompose
+            // 14 - 6: [10][4] then [10][?][6] where ? shows the split
+            const fromOver = over10; // first subtract this from b
+            const fromTen = b - over10; // then subtract rest from 10
+            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result)}<div class="rod-label" style="margin-left:4px">?</div>${makeRod(b)}<div class="rod-label">${b}</div></div>`;
+            if (fromTen > 0 && fromTen <= 10) {
+                html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:6px 0 2px">${b} = ${fromOver} + ${fromTen}</div>`;
+                html += `<div class="rod-row">${makeRod(10)}${makeRod(fromOver)}<div class="rod-label">${fromOver}</div>${makeRod(fromTen)}<div class="rod-label">${fromTen}</div></div>`;
+                html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px">10 − ${fromTen} = ${10-fromTen}</div>`;
+                html += `<div class="rod-row">${makeRodMystery(result)}<div class="rod-label">?</div></div>`;
+            }
         }
     } else {
         // Addition or simple problems
