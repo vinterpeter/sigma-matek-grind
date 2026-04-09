@@ -1238,7 +1238,7 @@ function saveStateToCloud() {
     const trimmedLog = (eventLog||[]).slice(-200);
     db.collection('users').doc(fbUser.uid).collection('data').doc('eventLog').set({ events: trimmedLog }).catch(e => console.warn('Cloud save (log) failed:', e));
     // Save collection separately
-    const safeCollection = (collection||[]).map(c => ({ id:c.id, name:c.name, rarity:c.rarity, category:c.category, stats:c.stats, exhausted:c.exhausted||0 }));
+    const safeCollection = (collection||[]).map(c => ({ id:c.id, name:c.name, rarity:c.rarity, rarityClass:c.rarityClass, category:c.category, stats:c.stats, exhausted:c.exhausted||0, image:c.image||c.imgUrl||'', story:c.story||'', prompt:c.prompt||'' }));
     db.collection('users').doc(fbUser.uid).collection('data').doc('collection').set({ cards: safeCollection }).catch(e => console.warn('Cloud save (collection) failed:', e));
 }
 
@@ -1264,7 +1264,9 @@ function loadStateFromCloud() {
                 } catch(e) {}
                 try {
                     const colDoc = await db.collection('users').doc(fbUser.uid).collection('data').doc('collection').get();
-                    if (colDoc.exists && colDoc.data().cards) state.collection = colDoc.data().cards;
+                    if (colDoc.exists && colDoc.data().cards) {
+                        state.collection = colDoc.data().cards.map(c => ({ ...c, imgUrl: c.image || c.imgUrl || '' }));
+                    }
                 } catch(e) {}
                 if (!state.collection) state.collection = [];
                 if (!state.eventLog) state.eventLog = [];
@@ -1924,7 +1926,7 @@ function openCrafting() {
     const grid = document.getElementById('fusionCardGrid'); grid.innerHTML = '';
     state.collection.forEach((card, idx) => {
         const el = document.createElement('div'); el.className = 'fusion-card';
-        const imgSrc = card.imgUrl || card.image || '';
+        const imgSrc = getCardImage(card);
         el.innerHTML = `<img src="${imgSrc}" alt="${card.name}" loading="lazy"><div class="fc-name">${card.name}</div><div class="fc-cat ${card.category==='italian'?'fc-cat-italian':'fc-cat-classic'}">${card.category==='italian'?'🇮🇹 Italian':'🧠 Classic'}</div>`;
         el.onclick = () => {
             AudioEngine.play('click');
@@ -2340,7 +2342,7 @@ function openBattleSelect() {
         const el = document.createElement('div');
         const isExhausted = card.exhausted && card.exhausted > 0;
         el.className = 'battle-select-card' + (isExhausted ? ' ci-exhausted' : '');
-        const img = card.imgUrl || card.image || '';
+        const img = getCardImage(card);
         const s = card.stats || {};
         const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
         el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${isExhausted ? '😴 ' : ''}${card.name}</div><div style="font-size:0.5rem;color:var(--neon-orange);font-weight:700">⚔️ ${power}${isExhausted ? ' (😴'+card.exhausted+')' : ''}</div>`;
@@ -2429,7 +2431,7 @@ function renderBattle() {
         const hpClass = hpPct > 50 ? 'high' : hpPct > 25 ? 'mid' : 'low';
         el.className = `battle-card${!c.alive ? ' dead' : ''}${battleState.selectedTarget === i ? ' target' : ''}`;
         el.id = `enemy-${i}`;
-        const img = c.imgUrl || c.image || '';
+        const img = getCardImage(c);
         el.innerHTML = `<img src="${img}" alt="${c.name}"><div class="bc-name">${c.name}</div><div class="bc-hp-bar"><div class="bc-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div><div class="bc-hp-text">${Math.max(0,c.hp)}/${c.maxHp}</div>`;
         if (c.alive && phase === 'pick_target' && !battleState.over) {
             el.style.cursor = 'pointer';
@@ -2447,7 +2449,7 @@ function renderBattle() {
         const hpClass = hpPct > 50 ? 'high' : hpPct > 25 ? 'mid' : 'low';
         el.className = `battle-card${!c.alive ? ' dead' : ''}${battleState.selectedAttacker === i ? ' selected' : ''}`;
         el.id = `player-${i}`;
-        const img = c.imgUrl || c.image || '';
+        const img = getCardImage(c);
         el.innerHTML = `<img src="${img}" alt="${c.name}"><div class="bc-name">${c.name}</div><div class="bc-hp-bar"><div class="bc-hp-fill ${hpClass}" style="width:${hpPct}%"></div></div><div class="bc-hp-text">${Math.max(0,c.hp)}/${c.maxHp}</div>`;
         if (c.alive && phase === 'pick_attacker' && !battleState.over) {
             el.style.cursor = 'pointer';
@@ -2889,6 +2891,16 @@ function showAdminTab(tab) {
     }
 }
 
+function getCardImage(item) {
+    if (item.imgUrl) return item.imgUrl;
+    if (item.image) return item.image;
+    // Fallback: find original card image by id
+    const orig = allBrainrotCards.find(c => c.id === item.id);
+    if (orig && orig.image) return orig.image;
+    if (item.prompt) return pollinationsUrl(item.prompt, item._seed || 0);
+    return '';
+}
+
 function renderCollection() {
     const section=document.getElementById('collectionSection'), grid=document.getElementById('collectionGrid');
     if(!state.collection.length){section.style.display='none';return;}
@@ -2897,7 +2909,7 @@ function renderCollection() {
     grid.innerHTML='';
     state.collection.forEach((item,idx)=>{
         const el=document.createElement('div'); el.className='collection-item' + (item.exhausted ? ' ci-exhausted' : '');
-        const imgSrc = item.imgUrl || item.image || '';
+        const imgSrc = getCardImage(item);
         const catBadge = item.category==='italian'?'🇮🇹':item.category==='fusion'?'🔬':'🧠';
         const s = item.stats || {};
         const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
@@ -2910,7 +2922,7 @@ let detailIdx = -1;
 function showDetail(idx) {
     detailIdx = idx;
     const item=state.collection[idx];
-    document.getElementById('dcImg').src=item.imgUrl||item.image||'';
+    document.getElementById('dcImg').src=getCardImage(item);
     document.getElementById('dcName').textContent=item.name;
     document.getElementById('dcRarity').innerHTML=`<span class="${item.rarityClass}">★ ${item.rarity} ★</span>`;
     const s = item.stats || {};
