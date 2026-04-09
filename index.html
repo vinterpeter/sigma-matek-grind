@@ -1265,8 +1265,9 @@ try { initFirebase(); } catch(e) {}
 function logEvent(type, data) {
     if (!state.eventLog) state.eventLog = [];
     state.eventLog.push({ t: Date.now(), type, ...data });
-    // Keep last 500 events
     if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
+    // Immediately persist so admin panel always has latest data
+    try { localStorage.setItem('sigmaMatek3', JSON.stringify({...state, badges: Array.from(state.badges)})); } catch(e) {}
 }
 
 // ==================== POLLINATIONS API ====================
@@ -2699,6 +2700,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function openAdmin() {
+    // Ensure state is loaded (admin can be opened before game starts)
+    if (!state.total && !state.eventLog.length) loadState();
     document.getElementById('adminOverlay').classList.add('show');
     showAdminTab('summary');
 }
