@@ -2045,16 +2045,14 @@ function renderRodProblem() {
             // 16 - 4: [10][6] then [10][?][4]
             html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}${makeRod(b)}</div>`;
         } else {
-            // Result <= 10: crossing 10, decompose
-            // 14 - 6: [10][4] then [10][?][6] where ? shows the split
-            const fromOver = over10; // first subtract this from b
-            const fromTen = b - over10; // then subtract rest from 10
-            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result)}${makeRod(b)}</div>`;
+            // Result <= 10: crossing 10
+            // 17 - 8: [10][7] then [?][1][7]
+            // b splits into over10 (removes the top part) + fromTen (takes from 10)
+            const fromTen = b - over10;
             if (fromTen > 0 && fromTen <= 10) {
-                html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:6px 0 2px">${b} = ${fromOver} + ${fromTen}</div>`;
-                html += `<div class="rod-row">${makeRod(10)}${makeRod(fromOver)}${makeRod(fromTen)}</div>`;
-                html += `<div style="font-size:0.7rem;color:var(--text-dim);margin:4px 0 2px">10 − ${fromTen} = ${10-fromTen}</div>`;
-                html += `<div class="rod-row">${makeRodMystery(result)}</div>`;
+                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(fromTen)}${makeRod(over10)}</div>`;
+            } else {
+                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
             }
         }
     } else if (op === '+' && !aIsQ && !bIsQ && result > 10) {
@@ -2103,7 +2101,12 @@ function renderRodEquation(a, op, b, result) {
         if (result > 10) {
             html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}${makeRod(b)}</div>`;
         } else {
-            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result)}${makeRod(b)}</div>`;
+            const fromTen = b - over10;
+            if (fromTen > 0 && fromTen <= 10) {
+                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(fromTen)}${makeRod(over10)}</div>`;
+            } else {
+                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
+            }
         }
     } else {
         html += `<div class="rod-row">${makeRod(a)}${makeRod(b)}</div>`;
