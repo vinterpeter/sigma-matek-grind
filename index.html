@@ -1075,8 +1075,44 @@
         <div class="dc-flavor" id="dcFlavor"></div>
         <button class="story-read-btn" id="dcReadBtn" onclick="readDetailStory()" style="margin:8px auto 0;display:inline-flex"><span id="dcReadIcon">🔊</span> Felolvasás</button>
         <br>
+        <button class="dc-close" id="dcUpgradeBtn" onclick="openUpgrade()" style="border-color:var(--neon-purple);color:var(--neon-purple);margin-top:6px">🛡️ Fejlesztés (5🪙)</button>
         <button class="dc-close" onclick="closeDetail()">Bezárás</button>
         <button class="dc-close" id="dcDeleteBtn" onclick="deleteFromCollection()" style="border-color:var(--neon-mag);color:var(--neon-mag);margin-top:6px">Törlés 🗑️</button>
+    </div>
+</div>
+
+<!-- Upgrade Overlay -->
+<div class="battle-select-overlay" id="upgradeOverlay">
+    <div class="battle-select-modal" style="max-width:480px">
+        <h3>🛡️ Fejlesztés</h3>
+        <div class="battle-status" id="upgradeCardName"></div>
+        <div class="battle-status">Válassz felszerelést vagy szupererőt!</div>
+        <div class="battle-select-grid" id="upgradeGrid" style="grid-template-columns:repeat(3,1fr)"></div>
+        <div class="battle-actions">
+            <button class="battle-btn close" onclick="closeUpgrade()">Mégse</button>
+        </div>
+    </div>
+</div>
+
+<!-- Upgrade Compare -->
+<div class="battle-select-overlay" id="upgradeCompareOverlay">
+    <div class="battle-select-modal" style="max-width:520px">
+        <h3>Melyiket tartod meg?</h3>
+        <div style="display:flex;gap:12px;justify-content:center;align-items:flex-start;flex-wrap:wrap;margin:10px 0">
+            <div style="text-align:center;flex:1;min-width:140px">
+                <div style="font-size:0.75rem;color:var(--text-dim);margin-bottom:4px">Eredeti</div>
+                <img id="upgradeOldImg" src="" style="width:100%;max-width:180px;aspect-ratio:1;object-fit:cover;border-radius:12px;border:2px solid var(--surface-3);display:block;margin:0 auto">
+                <div id="upgradeOldStats" style="font-size:0.7rem;margin-top:4px;color:var(--text-dim)"></div>
+                <button class="battle-btn close" onclick="keepUpgrade('old')" style="margin-top:8px;width:100%">Eredeti ✋</button>
+            </div>
+            <div style="text-align:center;flex:1;min-width:140px">
+                <div style="font-size:0.75rem;color:var(--neon-lime);margin-bottom:4px;font-weight:700">Új! ✨</div>
+                <img id="upgradeNewImg" src="" style="width:100%;max-width:180px;aspect-ratio:1;object-fit:cover;border-radius:12px;border:2px solid var(--neon-lime);display:block;margin:0 auto">
+                <div id="upgradeNewStats" style="font-size:0.7rem;margin-top:4px;color:var(--neon-lime)"></div>
+                <button class="battle-btn attack" onclick="keepUpgrade('new')" style="margin-top:8px;width:100%">Új kép! ✨</button>
+            </div>
+        </div>
+        <div id="upgradeLoadingText" style="text-align:center;color:var(--text-dim);font-size:0.85rem;margin:8px 0"></div>
     </div>
 </div>
 
@@ -3008,6 +3044,8 @@ function showDetail(idx) {
     const exhaustedText = item.exhausted ? `<span class="dc-stat" style="color:var(--neon-orange)">😴 Kimerült (${item.exhausted} válasz múlva kész)</span>` : '<span class="dc-stat" style="color:var(--neon-lime)">✅ Pihent</span>';
     document.getElementById('dcStats').innerHTML=`<span class="dc-stat">⚔️ Erő: ${power}</span><span class="dc-stat">😎 Rizz: ${s.rizz||'?'}</span><span class="dc-stat">🗿 Sigma: ${s.sigma||'?'}</span><span class="dc-stat">🧠 Brainrot: ${s.brainrot||'?'}</span>${exhaustedText}`;
     document.getElementById('dcFlavor').textContent=getCardStory(item);
+    document.getElementById('dcUpgradeBtn').disabled = state.talpieres < 5;
+    document.getElementById('dcUpgradeBtn').style.opacity = state.talpieres < 5 ? '0.4' : '1';
     document.getElementById('detailOverlay').classList.add('show'); AudioEngine.play('click');
 }
 function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); if(window.speechSynthesis.speaking) window.speechSynthesis.cancel(); }
@@ -3036,6 +3074,117 @@ function deleteFromCollection() {
     closeDetail();
     AudioEngine.play('click');
 }
+
+// ==================== UPGRADE SYSTEM ====================
+const upgradeItems = [
+    { id:'sword',  name:'Kard',       emoji:'🗡️', stat:'sigma',   boost:15, prompt:'wielding a glowing sword' },
+    { id:'shield', name:'Pajzs',      emoji:'🛡️', stat:'brainrot',boost:15, prompt:'holding a magical shield' },
+    { id:'crown',  name:'Korona',     emoji:'👑', stat:'rizz',    boost:15, prompt:'wearing a golden crown' },
+    { id:'rocket', name:'Rakéta',     emoji:'🚀', stat:'sigma',   boost:20, prompt:'riding a rocket' },
+    { id:'wings',  name:'Szárnyak',   emoji:'🪽', stat:'rizz',    boost:18, prompt:'with giant angel wings flying' },
+    { id:'fire',   name:'Tűzerő',     emoji:'🔥', stat:'brainrot',boost:20, prompt:'surrounded by fire and flames' },
+    { id:'ice',    name:'Jégpáncél',  emoji:'🧊', stat:'brainrot',boost:18, prompt:'covered in ice armor crystal' },
+    { id:'laser',  name:'Lézer',      emoji:'⚡', stat:'sigma',   boost:22, prompt:'shooting laser beams from eyes' },
+    { id:'robot',  name:'Robot páncél',emoji:'🤖', stat:'brainrot',boost:25, prompt:'wearing a mech robot armor suit' },
+    { id:'magic',  name:'Varázserő',  emoji:'✨', stat:'rizz',    boost:20, prompt:'with magical sparkles and wand' },
+    { id:'ninja',  name:'Ninja maszk',emoji:'🥷', stat:'sigma',   boost:18, prompt:'wearing ninja outfit with stars' },
+    { id:'cape',   name:'Szuperhős köpeny',emoji:'🦸', stat:'rizz', boost:22, prompt:'wearing superhero cape flying' },
+];
+
+let upgradeTarget = null, upgradeItem = null, upgradeNewImgUrl = '';
+
+function openUpgrade() {
+    if (detailIdx < 0 || state.talpieres < 5) return;
+    const card = state.collection[detailIdx];
+    upgradeTarget = detailIdx;
+    closeDetail();
+    document.getElementById('upgradeCardName').textContent = card.name;
+    const grid = document.getElementById('upgradeGrid');
+    grid.innerHTML = '';
+    upgradeItems.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'battle-select-card';
+        el.innerHTML = `<div style="font-size:2rem">${item.emoji}</div><div class="bsc-name">${item.name}</div><div style="font-size:0.5rem;color:var(--neon-lime)">+${item.boost} ${item.stat}</div>`;
+        el.onclick = () => startUpgrade(item);
+        grid.appendChild(el);
+    });
+    document.getElementById('upgradeOverlay').classList.add('show');
+    AudioEngine.play('click');
+}
+
+function closeUpgrade() { document.getElementById('upgradeOverlay').classList.remove('show'); }
+
+function startUpgrade(item) {
+    upgradeItem = item;
+    const card = state.collection[upgradeTarget];
+    closeUpgrade();
+
+    // Deduct tallér
+    state.talpieres -= 5;
+    saveState(); updateTokenDisplay();
+
+    // Generate new image
+    const cardPrompt = (card.prompt || card.name).slice(0, 50);
+    const newPrompt = `${cardPrompt}, ${item.prompt}, epic upgrade, colorful, meme style`;
+    const seed = Math.floor(Math.random() * 999999);
+    upgradeNewImgUrl = pollinationsUrl(newPrompt, seed);
+
+    // Show compare overlay
+    const oldImg = document.getElementById('upgradeOldImg');
+    oldImg.src = getCardImage(card);
+    const s = card.stats || {};
+    const oldPower = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+    document.getElementById('upgradeOldStats').textContent = `⚔️ ${oldPower} | 😎${s.rizz||0} 🗿${s.sigma||0} 🧠${s.brainrot||0}`;
+
+    // New stats
+    const newStats = { ...s };
+    newStats[item.stat] = Math.min(100, (newStats[item.stat]||50) + item.boost);
+    const newPower = Math.round(((newStats.rizz||0)+(newStats.sigma||0)+(newStats.brainrot||0))/3);
+    document.getElementById('upgradeNewStats').textContent = `⚔️ ${newPower} (+${newPower-oldPower}) | 😎${newStats.rizz||0} 🗿${newStats.sigma||0} 🧠${newStats.brainrot||0}`;
+
+    // Load new image
+    const newImg = document.getElementById('upgradeNewImg');
+    newImg.src = '';
+    document.getElementById('upgradeLoadingText').textContent = 'Kép generálás...';
+    const preImg = new Image();
+    preImg.src = upgradeNewImgUrl;
+    preImg.onload = () => { newImg.src = upgradeNewImgUrl; document.getElementById('upgradeLoadingText').textContent = ''; };
+    preImg.onerror = () => { newImg.src = upgradeNewImgUrl; document.getElementById('upgradeLoadingText').textContent = 'Kép betöltése...'; };
+    setTimeout(() => { if (!newImg.src) { newImg.src = upgradeNewImgUrl; document.getElementById('upgradeLoadingText').textContent = ''; } }, 8000);
+
+    // Store new stats for later
+    window._upgradeNewStats = newStats;
+    window._upgradeNewPrompt = newPrompt;
+    window._upgradeNewSeed = seed;
+
+    document.getElementById('upgradeCompareOverlay').classList.add('show');
+    AudioEngine.play('craft');
+    logEvent('upgrade', { card: card.name, item: item.name, stat: item.stat, boost: item.boost });
+}
+
+function keepUpgrade(choice) {
+    const card = state.collection[upgradeTarget];
+    if (!card) { closeUpgradeCompare(); return; }
+
+    // Always apply stat boost
+    card.stats = window._upgradeNewStats;
+
+    if (choice === 'new') {
+        // Keep new image
+        card.imgUrl = upgradeNewImgUrl;
+        card.image = null;
+        card.prompt = window._upgradeNewPrompt;
+        card._seed = window._upgradeNewSeed;
+    }
+    // If 'old', stats are boosted but image stays
+
+    saveState(); renderCollection(); updateTokenDisplay();
+    closeUpgradeCompare();
+    AudioEngine.play('reward');
+    AudioEngine.speak(`${card.name} fejlesztve!`);
+}
+
+function closeUpgradeCompare() { document.getElementById('upgradeCompareOverlay').classList.remove('show'); }
 
 // ==================== ENCYCLOPEDIA ====================
 let currentEncyFilter = 'all';
