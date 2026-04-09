@@ -2090,12 +2090,18 @@ function renderRodProblem() {
             html += `<div class="rod-row">${makeRod(a)}${makeRod(toTen)}${makeRod(over10)}</div>`;
         }
         html += `<div class="rod-row">${makeRod(10)}${makeRod(over10)}</div>`;
-    } else {
-        // Simple problems (result <= 10)
+    } else if (op === '−') {
+        // Simple subtraction (a <= 10): 8 - 4
         const rodA = aIsQ ? makeRodMystery(a) : makeRod(a);
         const rodB = bIsQ ? makeRodMystery(b) : makeRod(b);
         const rodR = rIsQ ? makeRodMystery(result) : makeRod(result);
-
+        html += `<div class="rod-row">${rodA}</div>`;
+        html += `<div class="rod-row">${rodR}${rodB}</div>`;
+    } else {
+        // Simple addition (result <= 10): 3 + 5
+        const rodA = aIsQ ? makeRodMystery(a) : makeRod(a);
+        const rodB = bIsQ ? makeRodMystery(b) : makeRod(b);
+        const rodR = rIsQ ? makeRodMystery(result) : makeRod(result);
         html += `<div class="rod-row">${rodA}${rodB}</div>`;
         html += `<div class="rod-row">${rodR}</div>`;
     }
@@ -2130,7 +2136,16 @@ function renderRodEquation(a, op, b, result) {
                 html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(fromTen)}${makeRod(over10)}</div>`;
             }
         }
+    } else if (op === '−') {
+        // Simple subtraction (a <= 10): 8 - 4
+        // Row 1: [8]
+        // Row 2: [?][4]
+        html += `<div class="rod-row">${makeRod(a)}</div>`;
+        html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
     } else {
+        // Simple addition (result <= 10): 3 + 5
+        // Row 1: [3][5]
+        // Row 2: [?]
         html += `<div class="rod-row">${makeRod(a)}${makeRod(b)}</div>`;
         html += `<div class="rod-row">${makeRodMystery(result)}</div>`;
     }
