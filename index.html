@@ -324,14 +324,6 @@
         }
 
         /* === HINT / RODS === */
-        .hint-btn {
-            display: none; margin: 6px auto 0; padding: 10px 20px; border-radius: 12px;
-            border: 2px solid var(--neon-purple); background: rgba(180,74,255,0.1);
-            color: var(--neon-purple); font-family: 'Outfit',sans-serif; font-size: 1rem;
-            font-weight: 700; cursor: pointer; transition: all 0.2s; animation: hintPulse 1s ease infinite;
-        }
-        .hint-btn.show { display: inline-block; }
-        @keyframes hintPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); box-shadow: 0 0 16px rgba(180,74,255,0.3); } }
         .hint-overlay { display:none; position:fixed; inset:0; background:rgba(5,5,15,0.92); z-index:310; justify-content:center; align-items:center; padding:16px; overflow-y:auto; }
         .hint-overlay.show { display:flex; }
         .hint-modal { background:var(--surface); border-radius:20px; padding:20px; max-width:480px; width:95%; border:2px solid var(--neon-purple); max-height:90vh; overflow-y:auto; }
@@ -984,7 +976,6 @@
             <div class="timer-section">
                 <div class="timer-bar-container"><div class="timer-bar-fill" id="timerBar"></div></div>
             </div>
-            <button class="hint-btn" id="hintBtn" onclick="showHint()">🤔 Segítség</button>
             <div id="inputArea">
                 <div class="pinpad-area" id="pinpadArea">
                     <div class="pin-display" id="pinDisplay"><span class="pin-cursor">_</span></div>
@@ -1014,6 +1005,7 @@
         <!-- BELOW THE FOLD - scroll for extras -->
         <div class="brainrot-counter">
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Gyűjtemény</button>
+            <button class="action-btn craft-btn" id="hintBtn" onclick="buyHint()" disabled style="border-color:var(--neon-purple);color:var(--neon-purple)">🧮 Segítség <span style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
             <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Keverés <span style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
             <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Harc <span style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
             <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Rajzolás <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
@@ -1872,7 +1864,6 @@ function readStory() {
 // --- MAIN GENERATE ---
 function generateProblem() {
     pinValue = ''; currentRetries = 0; updatePinDisplay();
-    document.getElementById('hintBtn').classList.remove('show');
     // Reset compare buttons from previous round
     document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
@@ -1935,12 +1926,7 @@ function startTimer() {
     timerInterval = setInterval(()=>{
         timerValue-=1;
         document.getElementById('timerBar').style.width=timerValue+'%';
-        if(timerValue<=0) {
-            clearInterval(timerInterval);
-            if(currentProblemType !== 'ruleGame' && currentProblemType !== 'sequence') {
-                document.getElementById('hintBtn').classList.add('show');
-            }
-        }
+        if(timerValue<=0) { clearInterval(timerInterval); }
     },80);
 }
 
@@ -1952,6 +1938,18 @@ const ROD_UNIT = 26; // px per unit, fixed everywhere
 function makeRod(n) {
     if (n < 1 || n > 10) return `<div class="rod" style="width:${n*ROD_UNIT}px;background:var(--text-dim)">${n}</div>`;
     return `<div class="rod" style="width:${n*ROD_UNIT}px;background:${rodColors[n]}">${n}</div>`;
+}
+
+function buyHint() {
+    if (state.talpieres < 1) return;
+    if (currentProblemType === 'ruleGame' || currentProblemType === 'sequence') {
+        AudioEngine.speak('Ehhez a feladathoz nincs segítség.');
+        return;
+    }
+    state.talpieres--;
+    saveState(); updateTokenDisplay();
+    logEvent('hint', { type: currentProblemType });
+    showHint();
 }
 
 function showHint() {
@@ -2292,6 +2290,9 @@ function updateTokenDisplay() {
     const rank = getMilitaryRank();
     const rd = document.getElementById('rankDisplay'); if(rd) rd.textContent = `${rank.icon} ${rank.name}`;
     const rw = document.getElementById('rankWins'); if(rw) rw.textContent = `⚔️ ${state.trophies||0} győzelem`;
+    // Hint button - always visible if has tallér
+    const hb = document.getElementById('hintBtn');
+    if(hb) hb.disabled = state.talpieres < 1;
     // Buttons - hide advanced features until level 3
     const advLevel = state.level >= 3;
     const craft = document.getElementById('craftBtn');
