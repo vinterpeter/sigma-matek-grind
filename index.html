@@ -100,14 +100,6 @@
         .top-level { font-size: 0.85rem; font-weight: 900; color: var(--neon-gold); }
         .top-level-title { font-size: 0.7rem; font-weight: 600; color: var(--neon-mag); display: block; }
 
-        /* === RANK BAR === */
-        .rank-bar {
-            display: flex; justify-content: center; gap: 16px; align-items: center;
-            padding: 2px 8px; margin: 2px 0;
-            font-size: 0.75rem; font-weight: 700; color: var(--neon-gold);
-        }
-        .rank-bar #rankWins { color: var(--neon-orange); font-size: 0.7rem; }
-
         /* === XP BAR MINI === */
         .xp-bar-mini {
             background: var(--surface); border-radius: 6px; height: 6px; overflow: hidden;
@@ -939,10 +931,12 @@
                 <span class="top-stat">🔥 <span id="streakDisplay">0</span></span>
                 <span class="top-stat">✅ <span id="correctDisplay">0</span></span>
                 <span class="top-stat">💯 <span id="accuracyDisplay">0%</span></span>
+                <span class="top-stat" style="font-size:0.7rem" id="rankDisplay">🔰 Újonc</span>
+                <span class="top-stat" style="font-size:0.65rem;color:var(--neon-orange)" id="rankWins">⚔️ 0</span>
             </div>
             <div class="top-bar-center">
                 <span class="top-level" id="levelBadge">LVL 1</span>
-                <span class="top-level-title" id="levelTitle">Noob</span>
+                <span class="top-level-title" id="levelTitle">Kezdő</span>
             </div>
             <div class="top-bar-right">
                 <span class="top-stat">⭐ <span id="scoreDisplay">0</span></span>
@@ -950,11 +944,6 @@
                 <span class="top-stat top-btn" onclick="openBadgesPage()">🏆 <span id="trophyDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openCollectionPage()">🃏 <span id="tokenDisplay">0</span></span>
             </div>
-        </div>
-
-        <div class="rank-bar" id="rankBar">
-            <span id="rankDisplay">🔰 Újonc</span>
-            <span id="rankWins">⚔️ 0 győzelem</span>
         </div>
 
         <div class="xp-bar-mini"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
