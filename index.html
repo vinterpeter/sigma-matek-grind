@@ -759,7 +759,7 @@
         .level-up-modal .modal-btn:hover { transform: scale(1.05); }
 
         /* === COLLECTION DETAIL === */
-        .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(5,5,15,0.92); backdrop-filter: blur(8px); z-index: 260; justify-content: center; align-items: center; padding: 20px; }
+        .detail-overlay { display: none; position: fixed; inset: 0; background: rgba(5,5,15,0.92); backdrop-filter: blur(8px); z-index: 305; justify-content: center; align-items: center; padding: 20px; }
         .detail-overlay.show { display: flex; }
         .detail-card {
             background: var(--surface); border-radius: 24px; padding: 24px; text-align: center;
@@ -839,7 +839,7 @@
 
         .battle-select-overlay {
             display: none; position: fixed; inset: 0;
-            background: rgba(5,5,15,0.95); z-index: 275; overflow-y: auto;
+            background: rgba(5,5,15,0.95); z-index: 308; overflow-y: auto;
             justify-content: center; align-items: center; padding: 20px;
         }
         .battle-select-overlay.show { display: flex; }
@@ -1008,7 +1008,9 @@
         <h2>🃏 KÁRTYÁIM (<span id="collectionCount">0</span>)</h2>
         <button class="encyclopedia-close" onclick="closeCollectionPage()">Vissza ✖</button>
     </div>
-    <div class="collection-grid" id="collectionGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;padding:80px 16px 16px"></div>
+    <div style="max-width:560px;margin:0 auto;padding:80px 16px 16px">
+        <div class="collection-grid" id="collectionGrid"></div>
+    </div>
 </div>
 
 <!-- Badges Page -->
@@ -1017,7 +1019,7 @@
         <h2>🏆 KITÜNTETÉSEK</h2>
         <button class="encyclopedia-close" onclick="closeBadgesPage()">Vissza ✖</button>
     </div>
-    <div style="padding:80px 16px 16px;max-width:560px;margin:0 auto">
+    <div style="max-width:560px;margin:0 auto;padding:80px 16px 16px">
         <div class="badges-grid" id="badgesGrid"></div>
     </div>
 </div>
