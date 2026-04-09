@@ -2047,13 +2047,11 @@ function renderRodProblem() {
             html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}${makeRod(b)}</div>`;
         } else {
             // Result <= 10: crossing 10
-            // 17 - 8: [10][7] then [?][1][7]
-            // b splits into over10 (removes the top part) + fromTen (takes from 10)
+            // 14 - 7: [10][4] / [?][7] / [?][3][4]
             const fromTen = b - over10;
+            html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
             if (fromTen > 0 && fromTen <= 10) {
                 html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(fromTen)}${makeRod(over10)}</div>`;
-            } else {
-                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
             }
         }
     } else if (op === '+' && !aIsQ && !bIsQ && result > 10) {
@@ -2127,10 +2125,9 @@ function renderRodEquation(a, op, b, result) {
             html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}${makeRod(b)}</div>`;
         } else {
             const fromTen = b - over10;
+            html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
             if (fromTen > 0 && fromTen <= 10) {
                 html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(fromTen)}${makeRod(over10)}</div>`;
-            } else {
-                html += `<div class="rod-row">${makeRodMystery(result)}${makeRod(b)}</div>`;
             }
         }
     } else {
