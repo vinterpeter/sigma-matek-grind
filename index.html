@@ -1281,9 +1281,12 @@ try { initFirebase(); } catch(e) {}
 // ==================== EVENT LOG ====================
 function logEvent(type, data) {
     if (!state.eventLog) state.eventLog = [];
+    if (!Array.isArray(state.eventLog)) state.eventLog = [];
     state.eventLog.push({ t: Date.now(), type, ...data });
     if (state.eventLog.length > 500) state.eventLog = state.eventLog.slice(-500);
 }
+// Debug: call window.debugState() in console
+window.debugState = () => { console.log('eventLog:', state.eventLog.length, 'entries'); console.log('last 3:', state.eventLog.slice(-3)); console.log('talpieres:', state.talpieres, 'total:', state.total); const ls = JSON.parse(localStorage.getItem('sigmaMatek3')||'{}'); console.log('localStorage eventLog:', (ls.eventLog||[]).length); };
 
 // ==================== POLLINATIONS API ====================
 const POLLINATIONS_URL = 'https://image.pollinations.ai/prompt/';
@@ -1988,7 +1991,8 @@ function generateFusion() {
         brainrot: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.brainrot||50),0)/n) + 5*n + Math.floor(Math.random()*15))
     };
     const flavor = fusionFlavors[Math.floor(Math.random()*fusionFlavors.length)];
-    const preImg = new Image(); preImg.src = imgUrl;
+    console.log('[FUSION] imgUrl:', imgUrl);
+    const preImg = new Image(); preImg.crossOrigin = 'anonymous'; preImg.src = imgUrl;
     const showResult = () => {
         clearInterval(loadInt);
         document.getElementById('craftLoading').classList.remove('show');
@@ -2007,9 +2011,9 @@ function generateFusion() {
         AudioEngine.speak(`${rarity} fúzió! ${name} sikeresen létrehozva!`);
         if(rarity==='Mythic'||rarity==='Legendary') createConfetti();
     };
-    preImg.onload = () => { setTimeout(showResult, 1500); };
-    preImg.onerror = () => { setTimeout(showResult, 1500); };
-    setTimeout(() => { if(document.getElementById('craftLoading').classList.contains('show')) showResult(); }, 15000);
+    preImg.onload = () => { console.log('[FUSION] image loaded'); setTimeout(showResult, 1000); };
+    preImg.onerror = () => { console.log('[FUSION] image error, showing anyway'); setTimeout(showResult, 500); };
+    setTimeout(() => { if(document.getElementById('craftLoading').classList.contains('show')) { console.log('[FUSION] timeout, forcing show'); showResult(); } }, 8000);
 }
 
 function keepCrafted() {
