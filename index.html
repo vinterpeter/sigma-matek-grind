@@ -1827,9 +1827,11 @@ function processAnswer(answer) {
         }
         createParticles(gc,'var(--neon-lime)');
         checkLevelUp();
-        if (state.correctSinceLastReward >= state.nextRewardAt) {
+        if (state.correctSinceLastReward >= state.nextRewardAt && state.collection.length < 5) {
             state.correctSinceLastReward=0; state.nextRewardAt=randReward();
             setTimeout(()=>showBrainrotReward(),900);
+        } else if (state.correctSinceLastReward >= state.nextRewardAt) {
+            state.correctSinceLastReward=0; state.nextRewardAt=randReward();
         }
     } else {
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'wrong':'wrong-flash');
