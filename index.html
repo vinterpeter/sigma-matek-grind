@@ -1774,7 +1774,7 @@ function startTimer() {
 
 function processAnswer(answer) {
     isAnswering=false; clearInterval(timerInterval);
-    const elapsed=Date.now()-state.questionStart, isFast=elapsed<5000;
+    const elapsed=Date.now()-state.questionStart, isFast=elapsed<10000;
     state.total++;
     const isCorrect = (answer === currentAnswer);
     recordAnswer(currentProblemType, isCorrect);
