@@ -928,23 +928,22 @@
         <!-- GAME FIRST - no scroll needed -->
         <div class="top-bar">
             <div class="top-bar-left">
-                <span class="top-stat">🔥 <span id="streakDisplay">0</span></span>
+                <span class="top-stat" style="font-size:1.1rem">🔥 <span id="streakDisplay" style="font-size:1.1rem">0</span></span>
                 <span class="top-stat">✅ <span id="correctDisplay">0</span></span>
-                <span class="top-stat">💯 <span id="accuracyDisplay">0%</span></span>
-                <span class="top-stat" style="font-size:0.7rem" id="rankDisplay">🔰 Újonc</span>
-                <span class="top-stat" style="font-size:0.65rem;color:var(--neon-orange)" id="rankWins">⚔️ 0</span>
+                <span class="top-stat" id="rankDisplay" style="font-size:0.7rem">🔰 Újonc</span>
             </div>
             <div class="top-bar-center">
                 <span class="top-level" id="levelBadge">LVL 1</span>
                 <span class="top-level-title" id="levelTitle">Kezdő</span>
             </div>
             <div class="top-bar-right">
-                <span class="top-stat">⭐ <span id="scoreDisplay">0</span></span>
                 <span class="top-stat">🪙 <span id="tallierDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openBadgesPage()">🏆 <span id="trophyDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openCollectionPage()">🃏 <span id="tokenDisplay">0</span></span>
             </div>
         </div>
+        <!-- Hidden stats for JS compatibility -->
+        <div style="display:none"><span id="scoreDisplay">0</span><span id="accuracyDisplay">0%</span><span id="rankWins">0</span></div>
 
         <div class="xp-bar-mini"><div class="xp-bar-fill" id="xpBar" style="width:0%"></div></div>
         <div class="xp-text" id="xpText" style="margin:0 0 2px;font-size:0.5rem">0 / 50 XP</div>
@@ -977,9 +976,9 @@
                     </div>
                 </div>
                 <div class="compare-grid" id="compareArea" style="display:none">
-                    <button class="compare-btn" onclick="compareSubmit('<')">&lt;</button>
-                    <button class="compare-btn" onclick="compareSubmit('=')">=</button>
-                    <button class="compare-btn" onclick="compareSubmit('>')">&gt;</button>
+                    <button class="compare-btn" onclick="compareSubmit('<')">&lt;<div style="font-size:0.55rem;margin-top:2px">kisebb</div></button>
+                    <button class="compare-btn" onclick="compareSubmit('=')">=<div style="font-size:0.55rem;margin-top:2px">egyenlő</div></button>
+                    <button class="compare-btn" onclick="compareSubmit('>')">&gt;<div style="font-size:0.55rem;margin-top:2px">nagyobb</div></button>
                 </div>
             </div>
         </div>
@@ -1558,7 +1557,7 @@ function randReward() { return 5 + Math.floor(Math.random()*6); }
 
 // ==================== GAME ====================
 let currentAnswer=0, currentAnswerType='number', timerInterval=null, timerValue=100, isAnswering=false;
-let pinValue = '';
+let pinValue = '', currentRetries = 0;
 
 // --- ADAPTIVE PROBLEM SELECTION ---
 const problemTypes = ['addition','subtraction','sequence','ruleGame','potlas','compare','wordProblem'];
@@ -1727,7 +1726,7 @@ function genPotlas() {
         else { currentAnswer = result; document.getElementById('problem').innerHTML = `<span>${a}</span><span class="operator"> − </span><span>${b}</span><span class="equals"> = ?</span>`; }
     }
     currentAnswerType = 'number';
-    document.getElementById('problemLabel').textContent = 'Pótold a hiányzó számot!';
+    document.getElementById('problemLabel').textContent = 'Melyik szám hiányzik?';
     document.getElementById('problemStory').style.display = 'none';
 }
 
@@ -1792,12 +1791,23 @@ function genWordProblem() {
     }
     const wp = template(a, b);
     currentAnswer = wp.ans; currentAnswerType = 'number';
-    document.getElementById('problemLabel').textContent = `${wp.emoji} Szöveges feladat`;
+    document.getElementById('problemLabel').textContent = `${wp.emoji} Történet`;
     document.getElementById('problem').innerHTML = '';
     const story = document.getElementById('problemStory');
     story.style.display = 'block';
     window._currentStoryText = `${wp.text} ${wp.q}`;
     story.innerHTML = `${wp.text}<span class="story-q">${wp.q}</span><button class="story-read-btn" id="storyReadBtn" onclick="readStory()"><span id="storyReadIcon">🔊</span> Felolvasás</button>`;
+    // Auto-read story for young learners
+    setTimeout(() => {
+        if (AudioEngine.enabled && 'speechSynthesis' in window) {
+            const u = new SpeechSynthesisUtterance(stripEmoji(window._currentStoryText));
+            u.lang = 'hu-HU'; u.rate = 0.85; u.pitch = 1.1; u.volume = 0.9;
+            const btn = document.getElementById('storyReadBtn');
+            if(btn) { btn.classList.add('playing'); btn.innerHTML = '<span>⏹️</span> Leállítás'; }
+            u.onend = () => { if(btn) { btn.classList.remove('playing'); btn.innerHTML = '<span>🔊</span> Felolvasás'; } };
+            window.speechSynthesis.speak(u);
+        }
+    }, 400);
 }
 
 function stripEmoji(str) {
@@ -1823,7 +1833,7 @@ function readStory() {
 
 // --- MAIN GENERATE ---
 function generateProblem() {
-    pinValue = ''; updatePinDisplay();
+    pinValue = ''; currentRetries = 0; updatePinDisplay();
     // Reset compare buttons from previous round
     document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
@@ -1925,10 +1935,27 @@ function processAnswer(answer) {
             state.correctSinceLastReward=0; state.nextRewardAt=randReward();
         }
     } else {
+        currentRetries++;
         if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'wrong':'wrong-flash');
         state.streak=0; state.fastStreak=0;
         AudioEngine.play('wrong');
-        // Show correct answer
+
+        if (currentRetries < 2) {
+            // First wrong: let them try again
+            showFeedback('PRÓBÁLD ÚJRA! 🤔', 'var(--neon-orange)');
+            AudioEngine.speak('Próbáld újra!');
+            pinValue = '';
+            setTimeout(() => {
+                updatePinDisplay();
+                document.querySelectorAll('.compare-btn').forEach(b => b.classList.remove('wrong','correct'));
+                isAnswering = true;
+                startTimer();
+            }, 800);
+            try { saveState(); } catch(e) {}
+            return; // Don't generate new problem
+        }
+
+        // Second wrong: show correct answer, move on
         if(currentAnswerType==='number') {
             document.getElementById('pinDisplay').innerHTML = `<span style="color:var(--neon-mag)">❌ ${answer}</span> <span style="color:var(--text-dim)">→</span> <span style="color:var(--neon-lime)">✅ ${currentAnswer}</span>`;
         } else {
@@ -1938,12 +1965,12 @@ function processAnswer(answer) {
                 if(signs[idx]===currentAnswer) b.classList.add('correct');
             });
         }
-        if(Math.random()<0.3) setTimeout(()=>AudioEngine.speak(wrongVoices[Math.floor(Math.random()*wrongVoices.length)]),300);
+        AudioEngine.speak(wrongVoices[Math.floor(Math.random()*wrongVoices.length)]);
         const msg=wrongMessages[Math.floor(Math.random()*wrongMessages.length)];
         showFeedback(msg.text,msg.color);
     }
     try { updateStats(); updateTokenDisplay(); checkBadges(); checkDaily(); saveState(); } catch(e) { console.error('processAnswer error:', e); }
-    setTimeout(()=>generateProblem(),1600);
+    setTimeout(()=>generateProblem(),1200);
 }
 
 // ==================== BRAINROT CARD REWARD ====================
@@ -2014,11 +2041,18 @@ function updateTokenDisplay() {
     const rank = getMilitaryRank();
     const rd = document.getElementById('rankDisplay'); if(rd) rd.textContent = `${rank.icon} ${rank.name}`;
     const rw = document.getElementById('rankWins'); if(rw) rw.textContent = `⚔️ ${state.trophies||0} győzelem`;
-    // Buttons
-    document.getElementById('craftBtn').disabled = !(state.collection.length >= 2 && state.talpieres >= 1);
-    document.getElementById('creatorBtn').disabled = state.talpieres < 20;
-    const bb = document.getElementById('battleBtn'); if(bb) bb.disabled = state.collection.length < 3 || state.talpieres < 10;
-    const sb = document.getElementById('shopBtn'); if(sb) sb.disabled = state.talpieres < 20;
+    // Buttons - hide advanced features until level 3
+    const advLevel = state.level >= 3;
+    const craft = document.getElementById('craftBtn');
+    craft.disabled = !(state.collection.length >= 2 && state.talpieres >= 1);
+    craft.style.display = advLevel ? '' : 'none';
+    const creator = document.getElementById('creatorBtn');
+    creator.disabled = state.talpieres < 20;
+    creator.style.display = advLevel ? '' : 'none';
+    const bb = document.getElementById('battleBtn');
+    if(bb) { bb.disabled = state.collection.length < 3 || state.talpieres < 10; bb.style.display = advLevel ? '' : 'none'; }
+    const sb = document.getElementById('shopBtn');
+    if(sb) { sb.disabled = state.talpieres < 20; sb.style.display = state.level >= 2 ? '' : 'none'; }
 }
 
 // ==================== FUSION ====================
