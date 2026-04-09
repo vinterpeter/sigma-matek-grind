@@ -290,35 +290,35 @@
 
         /* === LANDSCAPE IPAD MINI === */
         @media (min-width: 700px) and (orientation: landscape) {
-            .container { max-width: 700px; padding: 4px 20px; }
+            .container { max-width: 740px; padding: 4px 20px; }
             .header { padding: 2px 0 0; }
-            .header h1 { font-size: 1.3rem; }
+            .header h1 { font-size: 1.4rem; }
             .header .subtitle { display: none; }
-            .top-bar { padding: 3px 10px; margin: 2px 0; }
-            .top-stat { font-size: 0.75rem; }
-            .top-level { font-size: 0.7rem; }
-            .top-level-title { font-size: 0.55rem; }
-            .xp-bar-mini { height: 4px; margin: 1px 0; }
-            .xp-text { font-size: 0.45rem !important; }
-            .streak-display { margin: 1px 0; min-height: 18px; }
-            .streak-text { font-size: 0.9rem; }
-            .game-card { padding: 8px 16px; margin: 3px 0; }
-            .problem { font-size: 2.8rem; margin: 4px 0; }
-            .problem-label { font-size: 0.7rem; margin-bottom: 2px; }
-            .problem-story { font-size: 1.05rem; padding: 8px 12px; margin: 4px 0; }
-            .problem-story .story-q { font-size: 1.1rem; }
-            .seq-num { font-size: 1.6rem; padding: 6px 12px; }
-            .rule-cell { font-size: 1.4rem; padding: 5px 14px; }
+            .top-bar { padding: 4px 12px; margin: 2px 0; }
+            .top-stat { font-size: 0.95rem; }
+            .top-level { font-size: 0.85rem; }
+            .top-level-title { font-size: 0.7rem; }
+            .xp-bar-mini { height: 5px; margin: 2px 0; }
+            .xp-text { font-size: 0.6rem !important; }
+            .streak-display { margin: 2px 0; min-height: 20px; }
+            .streak-text { font-size: 1rem; }
+            .game-card { padding: 10px 18px; margin: 4px 0; }
+            .problem { font-size: 3rem; margin: 6px 0; }
+            .problem-label { font-size: 1rem; margin-bottom: 4px; }
+            .problem-story { font-size: 1.1rem; padding: 10px 14px; margin: 6px 0; }
+            .problem-story .story-q { font-size: 1.15rem; }
+            .seq-num { font-size: 1.8rem; padding: 8px 14px; }
+            .rule-cell { font-size: 1.6rem; padding: 6px 16px; }
             .timer-section { margin-top: 4px; }
             .pinpad-area { margin-top: 6px; }
-            .pin-display { font-size: 2.4rem; padding: 4px 12px; min-height: 42px; margin-bottom: 6px; }
-            .pinpad-grid { max-width: 280px; gap: 5px; }
-            .pin-btn { padding: 8px 6px; font-size: 1.5rem; border-radius: 10px; }
-            .compare-grid { max-width: 280px; gap: 6px; margin-top: 8px; }
-            .compare-btn { font-size: 2rem; padding: 10px 6px; }
-            .brainrot-counter { margin: 4px 0; padding: 5px 10px; }
-            .action-btn { font-size: 0.6rem; padding: 4px 8px; }
-            .daily-section { margin: 4px 0; padding: 6px 10px; }
+            .pin-display { font-size: 2.6rem; padding: 6px 14px; min-height: 46px; margin-bottom: 6px; }
+            .pinpad-grid { max-width: 320px; gap: 6px; }
+            .pin-btn { padding: 12px 8px; font-size: 1.8rem; border-radius: 12px; }
+            .compare-grid { max-width: 340px; gap: 8px; margin-top: 8px; }
+            .compare-btn { font-size: 2.4rem; padding: 16px 8px; }
+            .brainrot-counter { margin: 4px 0; padding: 6px 12px; }
+            .action-btn { font-size: 0.8rem; padding: 8px 12px; }
+            .daily-section { margin: 4px 0; padding: 8px 12px; }
         }
 
         /* === TIMER === */
@@ -609,8 +609,8 @@
 
         .sound-toggle {
             position: fixed; top: 14px; right: 14px; z-index: 300;
-            font-size: 1.3rem; background: var(--surface); border: 1px solid var(--surface-3);
-            border-radius: 10px; width: 40px; height: 40px; cursor: pointer;
+            font-size: 1.5rem; background: var(--surface); border: 1px solid var(--surface-3);
+            border-radius: 12px; width: 50px; height: 50px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .sound-toggle:hover { border-color: var(--neon-cyan); box-shadow: var(--glow-cyan); }
@@ -900,11 +900,11 @@
     </div>
 
     <div class="start-screen" id="startScreen">
-        <div class="mascot">🗿</div>
-        <h2>Készen állsz a grindre?</h2>
-        <p>Oldd meg a matekot, gyűjts 100 brainrot kártyát,<br>olvaszd össze őket AI-val és legyél <span style="color:var(--neon-mag);">Sigma</span>! 🔥<br><small style="color:var(--text-muted);">50 Classic 🧠 + 50 Italian 🇮🇹 Brainrot</small></p>
-        <button class="start-btn" onclick="startGame()">GRIND INDUL 🚀</button>
-        <p class="start-tagline">Only real sigmas can solve these 💀</p>
+        <div class="mascot">🧮</div>
+        <h2>Készen állsz?</h2>
+        <p>Oldj meg matekfeladatokat, gyűjts kártyákat,<br>és legyél a legjobb! 🌟</p>
+        <button class="start-btn" onclick="startGame()">JÁTÉK INDUL 🚀</button>
+        <p class="start-tagline">Számolj, gyűjts, harcolj!</p>
         <div style="margin-top:16px;display:flex;gap:8px;justify-content:center">
             <button class="action-btn encyclopedia-btn" onclick="exportData()" style="font-size:0.7rem">💾 Mentés</button>
             <button class="action-btn craft-btn" onclick="importData()" style="font-size:0.7rem;border-color:var(--neon-purple);color:var(--neon-purple)">📂 Betöltés</button>
@@ -956,9 +956,9 @@
                         <button class="pin-btn" onclick="pinPress(7)">7</button>
                         <button class="pin-btn" onclick="pinPress(8)">8</button>
                         <button class="pin-btn" onclick="pinPress(9)">9</button>
-                        <button class="pin-btn pin-del" onclick="pinDelete()">⌫</button>
+                        <button class="pin-btn pin-del" onclick="pinDelete()">⌫<div style="font-size:0.5rem;margin-top:1px">Törlés</div></button>
                         <button class="pin-btn" onclick="pinPress(0)">0</button>
-                        <button class="pin-btn pin-ok" onclick="pinSubmit()">OK ✓</button>
+                        <button class="pin-btn pin-ok" onclick="pinSubmit()">OK</button>
                     </div>
                 </div>
                 <div class="compare-grid" id="compareArea" style="display:none">
@@ -971,10 +971,10 @@
 
         <!-- BELOW THE FOLD - scroll for extras -->
         <div class="brainrot-counter">
-            <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Enciklopédia</button>
-            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Fúzió <span id="fusionCostLabel" style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
-            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Csata <span style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
-            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Készítő <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
+            <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Gyűjtemény</button>
+            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Keverés <span style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
+            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Harc <span style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
+            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Rajzolás <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
             <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold)">🛒 Bolt <span style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
         </div>
 
@@ -1361,16 +1361,16 @@ const state = {
 };
 
 const levels = [
-    {level:1, xpNeeded:50,  title:"Noob",          emoji:"🥚"},
-    {level:2, xpNeeded:80,  title:"Kis Sigma",     emoji:"🐣"},
-    {level:3, xpNeeded:120, title:"Matek Padawan",  emoji:"🗿"},
-    {level:4, xpNeeded:170, title:"Rizz Tanuló",    emoji:"😎"},
-    {level:5, xpNeeded:230, title:"Gyro King",      emoji:"🌀"},
-    {level:6, xpNeeded:300, title:"Ohio Harcos",     emoji:"⚔️"},
-    {level:7, xpNeeded:400, title:"Skibidi Mester",  emoji:"🚽"},
-    {level:8, xpNeeded:520, title:"Sigma Grinder",   emoji:"💪"},
-    {level:9, xpNeeded:650, title:"Matek Gigachad",  emoji:"🏆"},
-    {level:10,xpNeeded:800, title:"Ultimate Sigma",  emoji:"👑"},
+    {level:1, xpNeeded:50,  title:"Kezdő",           emoji:"🥚"},
+    {level:2, xpNeeded:80,  title:"Tanuló",          emoji:"🐣"},
+    {level:3, xpNeeded:120, title:"Számoló",          emoji:"🧮"},
+    {level:4, xpNeeded:170, title:"Okos",             emoji:"📚"},
+    {level:5, xpNeeded:230, title:"Ügyes",            emoji:"⭐"},
+    {level:6, xpNeeded:300, title:"Matek Hős",        emoji:"🦸"},
+    {level:7, xpNeeded:400, title:"Matek Mester",     emoji:"🏅"},
+    {level:8, xpNeeded:520, title:"Matek Bajnok",     emoji:"💪"},
+    {level:9, xpNeeded:650, title:"Matek Zseni",      emoji:"🏆"},
+    {level:10,xpNeeded:800, title:"Matek Király",     emoji:"👑"},
 ];
 
 const badges = [
@@ -1415,23 +1415,23 @@ const fusionFlavors = [
 
 // ==================== MESSAGES ====================
 const correctMessages = [
-    {text:"SIGMA W 🗿",color:"var(--neon-lime)"},{text:"NO CAP! 🔥",color:"var(--neon-gold)"},
-    {text:"GOATED 🐐",color:"var(--neon-cyan)"},{text:"BUSSIN! 💯",color:"var(--neon-mag)"},
-    {text:"SHEEEESH 😤",color:"var(--neon-lime)"},{text:"CHAD MOVE 💪",color:"var(--neon-purple)"},
-    {text:"W RIZZ 😎",color:"var(--neon-gold)"},{text:"BASED! 🗿",color:"var(--neon-cyan)"},
-    {text:"GYATT! 🔥",color:"var(--neon-mag)"},{text:"FANUM TAX ✅",color:"var(--neon-lime)"},
-    {text:"GIGACHAD 🏆",color:"var(--neon-gold)"},
+    {text:"HELYES! ✅",color:"var(--neon-lime)"},{text:"SZUPER! 🌟",color:"var(--neon-gold)"},
+    {text:"REMEK! 🎉",color:"var(--neon-cyan)"},{text:"KIRÁLY! 👑",color:"var(--neon-mag)"},
+    {text:"ÜGYES! 💪",color:"var(--neon-lime)"},{text:"NAGYSZERŰ! 🏆",color:"var(--neon-purple)"},
+    {text:"FANTASZTIKUS! 😊",color:"var(--neon-gold)"},{text:"PONTOS! 🎯",color:"var(--neon-cyan)"},
+    {text:"ZSENI! 🧠",color:"var(--neon-mag)"},{text:"BRAVÓ! ⭐",color:"var(--neon-lime)"},
+    {text:"KLASSZ! 🚀",color:"var(--neon-gold)"},
 ];
 const wrongMessages = [
-    {text:"OHIO MOMENT 💀",color:"var(--neon-mag)"},{text:"NOT SIGMA 😬",color:"#ff4444"},
-    {text:"L + RATIO 📉",color:"#ff4444"},{text:"BRUH 💀",color:"var(--neon-mag)"},
-    {text:"SKILL ISSUE 😭",color:"#ff4444"},{text:"CAP! 🧢",color:"var(--neon-mag)"},
-    {text:"NPC MOMENT 🤖",color:"#ff4444"},
+    {text:"SAJNOS NEM 😕",color:"var(--neon-mag)"},{text:"MAJDNEM! 💪",color:"#ff4444"},
+    {text:"PRÓBÁLD ÚJRA! 🔄",color:"#ff4444"},{text:"NEM BAJ! 😊",color:"var(--neon-mag)"},
+    {text:"KÖZEL VOLT! 👀",color:"#ff4444"},{text:"GONDOLKODJ! 🤔",color:"var(--neon-mag)"},
+    {text:"LEGKÖZELEBB! 🌟",color:"#ff4444"},
 ];
-const correctVoices = ["Sigma move!","No cap, király vagy!","Sheeeesh!","Gigachad pillanat!","Tűzben vagy!","Based és redpilled!","W rizz tesó!","Goated válasz!","Mekkora chad!"];
-const wrongVoices = ["Ajjaj, Ohio moment!","Brúh pillanat!","Skill issue, próbáld újra!","NPC válasz, gyerünk újra!","Nem baj, sigma nem adja fel!"];
-const streakMessages = {3:"🔥 3x STREAK!",5:"💥 5x UNSTOPPABLE!",7:"⚡ 7x SIGMA MODE!",10:"☄️ 10x GIGACHAD!",15:"🌟 15x LEGENDARY!",20:"👑 20x GOD TIER!"};
-const streakVoices = {3:"Három egymás után!",5:"Öt streak! Megállíthatatlan!",7:"Hét! Sigma mód!",10:"Tízes streak! Gigachad!",15:"Tizenöt! Legendás!",20:"Húsz! Isten szint!"};
+const correctVoices = ["Helyes!","Szuper, ügyes vagy!","Remek válasz!","Fantasztikus!","Nagyon jó!","Király vagy!","Bravó!","Zseniális!","Így kell ezt!"];
+const wrongVoices = ["Sajnos nem jó.","Próbáld újra!","Majdnem sikerült!","Nem baj, gondolkodj!","Legközelebb sikerülni fog!"];
+const streakMessages = {3:"🔥 3 helyes egymás után!",5:"💥 5 helyes! Szuper!",7:"⚡ 7 helyes! Fantasztikus!",10:"🌟 10 helyes! Zseniális!",15:"🏆 15 helyes! Hihetetlen!",20:"👑 20 helyes! Király vagy!"};
+const streakVoices = {3:"Három helyes egymás után!",5:"Öt helyes, szuper!",7:"Hét helyes, fantasztikus!",10:"Tíz helyes, zseniális!",15:"Tizenöt helyes, hihetetlen!",20:"Húsz helyes, király vagy!"};
 
 // ==================== SAVE/LOAD ====================
 let _cloudSaveTimer = null;
@@ -1836,7 +1836,7 @@ function processAnswer(answer) {
         AudioEngine.play('wrong');
         // Show correct answer
         if(currentAnswerType==='number') {
-            document.getElementById('pinDisplay').innerHTML = `<span style="color:var(--neon-mag);text-decoration:line-through">${answer}</span> → <span style="color:var(--neon-lime)">${currentAnswer}</span>`;
+            document.getElementById('pinDisplay').innerHTML = `<span style="color:var(--neon-mag)">❌ ${answer}</span> <span style="color:var(--text-dim)">→</span> <span style="color:var(--neon-lime)">✅ ${currentAnswer}</span>`;
         } else {
             document.querySelectorAll('.compare-btn').forEach(b=>{
                 const signs=['<','=','>'];
@@ -3166,7 +3166,7 @@ function createBgEmojis() {
 function startGame() {
     gameStarted = true;
     AudioEngine.ensure(); AudioEngine.play('click');
-    AudioEngine.speak("Hajrá Zétény!");
+    AudioEngine.speak("Kezdődik a játék! Hajrá Zétény!");
     document.getElementById('startScreen').style.display='none';
     document.getElementById('gameArea').classList.add('active');
     loadState(); updateStats(); updateTokenDisplay(); renderBadges(); renderCollection(); checkDaily(); generateProblem();
