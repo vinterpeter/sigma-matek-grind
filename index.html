@@ -95,6 +95,8 @@
         .top-bar-center { text-align: center; }
         .top-stat { font-size: 0.9rem; font-weight: 700; color: var(--text); white-space: nowrap; }
         .top-stat span { color: var(--neon-gold); font-weight: 900; }
+        .top-btn { cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: background 0.2s; -webkit-tap-highlight-color: transparent; }
+        .top-btn:active { background: var(--surface-3); }
         .top-level { font-size: 0.85rem; font-weight: 900; color: var(--neon-gold); }
         .top-level-title { font-size: 0.7rem; font-weight: 600; color: var(--neon-mag); display: block; }
 
@@ -937,8 +939,8 @@
             <div class="top-bar-right">
                 <span class="top-stat">⭐ <span id="scoreDisplay">0</span></span>
                 <span class="top-stat">🪙 <span id="tallierDisplay">0</span></span>
-                <span class="top-stat">🏆 <span id="trophyDisplay">0</span></span>
-                <span class="top-stat">🃏 <span id="tokenDisplay">0</span></span>
+                <span class="top-stat top-btn" onclick="openBadgesPage()">🏆 <span id="trophyDisplay">0</span></span>
+                <span class="top-stat top-btn" onclick="openCollectionPage()">🃏 <span id="tokenDisplay">0</span></span>
             </div>
         </div>
 
@@ -995,15 +997,26 @@
             <div class="daily-reward" id="dailyReward">Oldj meg 10 feladatot a bonus XP-ért! 🎁</div>
         </div>
 
-        <div class="collection-section" id="collectionSection" style="display:none;">
-            <div class="collection-title">🗂️ Brainrot Gyűjtemény (<span id="collectionCount">0</span>)</div>
-            <div class="collection-grid" id="collectionGrid"></div>
-        </div>
+    </div>
+</div>
 
-        <div class="rewards-section">
-            <div class="rewards-title">🏆 Achievementek</div>
-            <div class="badges-grid" id="badgesGrid"></div>
-        </div>
+<!-- Collection Page -->
+<div class="encyclopedia-overlay" id="collectionPageOverlay">
+    <div class="encyclopedia-header">
+        <h2>🃏 KÁRTYÁIM (<span id="collectionCount">0</span>)</h2>
+        <button class="encyclopedia-close" onclick="closeCollectionPage()">Vissza ✖</button>
+    </div>
+    <div class="collection-grid" id="collectionGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;padding:80px 16px 16px"></div>
+</div>
+
+<!-- Badges Page -->
+<div class="encyclopedia-overlay" id="badgesPageOverlay">
+    <div class="encyclopedia-header">
+        <h2>🏆 KITÜNTETÉSEK</h2>
+        <button class="encyclopedia-close" onclick="closeBadgesPage()">Vissza ✖</button>
+    </div>
+    <div style="padding:80px 16px 16px;max-width:560px;margin:0 auto">
+        <div class="badges-grid" id="badgesGrid"></div>
     </div>
 </div>
 
@@ -3017,10 +3030,27 @@ function getCardStory(item) {
     return '';
 }
 
+function openCollectionPage() {
+    renderCollection();
+    document.getElementById('collectionPageOverlay').classList.add('show');
+    AudioEngine.play('click');
+}
+function closeCollectionPage() {
+    document.getElementById('collectionPageOverlay').classList.remove('show');
+    AudioEngine.play('click');
+}
+function openBadgesPage() {
+    renderBadges();
+    document.getElementById('badgesPageOverlay').classList.add('show');
+    AudioEngine.play('click');
+}
+function closeBadgesPage() {
+    document.getElementById('badgesPageOverlay').classList.remove('show');
+    AudioEngine.play('click');
+}
+
 function renderCollection() {
-    const section=document.getElementById('collectionSection'), grid=document.getElementById('collectionGrid');
-    if(!state.collection.length){section.style.display='none';return;}
-    section.style.display='block';
+    const grid=document.getElementById('collectionGrid');
     document.getElementById('collectionCount').textContent = state.collection.length;
     grid.innerHTML='';
     state.collection.forEach((item,idx)=>{
