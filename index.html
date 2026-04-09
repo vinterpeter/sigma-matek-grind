@@ -2448,10 +2448,12 @@ function startBattle() {
         return { ...c, hp: cardHP(c), maxHp: cardHP(c), atk: cardAtk(c), alive: true };
     });
 
-    // Enemy: 3 cards scaled by difficulty
+    // Enemy: 3 cards scaled by difficulty, excluding player's picks
     const diff = state.battleDifficulty || 1.0;
     const playerAvg = Math.round(playerCards.reduce((s,c) => s + c.maxHp, 0) / 3);
-    const shuffled = [...allBrainrotCards].sort(() => Math.random() - 0.5);
+    const playerIds = new Set(playerCards.map(c => c.id));
+    const available = allBrainrotCards.filter(c => !playerIds.has(c.id));
+    const shuffled = [...available].sort(() => Math.random() - 0.5);
     const enemyCards = shuffled.slice(0, 3).map(c => {
         const base = Math.max(30, Math.min(95, Math.round((playerAvg - 20) * diff) + rnd(-15, 15)));
         const stats = { rizz: base + rnd(-10,10), sigma: base + rnd(-10,10), brainrot: base + rnd(-10,10) };
