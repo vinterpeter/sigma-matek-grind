@@ -563,9 +563,9 @@
         }
         .collection-item:hover { border-color: var(--neon-gold); transform: translateY(-3px); box-shadow: 0 6px 16px rgba(255,208,0,0.12); }
         .ci-img { width: 100%; aspect-ratio: 1; border-radius: 8px; object-fit: cover; background: var(--void); display: block; }
-        .ci-name { font-size: 0.5rem; color: var(--text-dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-        .ci-rarity { font-size: 0.45rem; font-weight: 800; }
-        .ci-power { font-size: 0.5rem; font-weight: 800; color: var(--neon-orange); margin-top: 1px; }
+        .ci-name { font-size: 0.7rem; color: var(--text); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+        .ci-rarity { font-size: 0.6rem; font-weight: 800; }
+        .ci-power { font-size: 0.65rem; font-weight: 800; color: var(--neon-orange); margin-top: 2px; }
         .ci-exhausted { position: relative; opacity: 0.5; }
         .ci-exhausted::after { content: '😴'; position: absolute; top: 4px; right: 4px; font-size: 0.9rem; }
 
@@ -1410,7 +1410,7 @@ const AudioEngine = {
         if (!this.enabled) return;
         this.ensure();
         const t = this.ctx.currentTime;
-        const fn = { correct: this._correct, wrong: this._wrong, streak: this._streak, levelup: this._levelup, reward: this._reward, craft: this._craft, click: this._click, token: this._token };
+        const fn = { correct: this._correct, wrong: this._wrong, streak: this._streak, levelup: this._levelup, reward: this._reward, craft: this._craft, click: this._click, token: this._token, hit: this._hit, destroy: this._destroy, battleStart: this._battleStart, battleWin: this._battleWin, battleLose: this._battleLose };
         if (fn[type]) fn[type].call(this, t);
     },
     _osc(f, type, start, dur, vol=0.12) {
@@ -1427,6 +1427,11 @@ const AudioEngine = {
     _craft(t) { for(let i=0;i<10;i++) this._osc(300+Math.random()*1200,'sine',t+i*0.15,0.2,0.05); this._osc(1047,'sine',t+1.5,0.5,0.15); this._osc(1319,'sine',t+1.7,0.5,0.15); this._osc(1568,'sine',t+1.9,0.6,0.18); },
     _click(t) { this._osc(800,'sine',t,0.06,0.08); },
     _token(t) { this._osc(880,'sine',t,0.1,0.1); this._osc(1320,'sine',t+0.1,0.15,0.1); },
+    _hit(t) { this._osc(150,'sawtooth',t,0.15,0.1); this._osc(100,'square',t+0.05,0.1,0.08); this._osc(200,'sawtooth',t+0.1,0.08,0.06); },
+    _destroy(t) { for(let i=0;i<5;i++) this._osc(400-i*60,'sawtooth',t+i*0.06,0.15,0.08); this._osc(80,'square',t+0.3,0.3,0.1); },
+    _battleStart(t) { [262,330,392,523].forEach((f,i) => this._osc(f,'square',t+i*0.12,0.2,0.08)); this._osc(523,'sawtooth',t+0.5,0.3,0.1); },
+    _battleWin(t) { [523,659,784,1047,1319].forEach((f,i) => { this._osc(f,'sine',t+i*0.15,0.3,0.12); this._osc(f*1.5,'triangle',t+i*0.15,0.2,0.05); }); },
+    _battleLose(t) { [400,350,300,200,150].forEach((f,i) => this._osc(f,'sawtooth',t+i*0.2,0.3,0.08)); },
     speak(text) {
         if (!this.enabled || !('speechSynthesis' in window)) return;
         const clean = typeof stripEmoji === 'function' ? stripEmoji(text) : text;
@@ -2872,7 +2877,7 @@ function startBattle() {
 
     closeBattleSelect();
     document.getElementById('battleOverlay').classList.add('show');
-    AudioEngine.play('craft');
+    AudioEngine.play('battleStart');
     const rank = getMilitaryRank();
     document.getElementById('battleRankDisplay').textContent = `${rank.icon} ${rank.name} | 🏆 ${state.trophies||0}`;
     battleLog('Csata indul! Válaszd ki a támadó kártyádat!');
@@ -3011,7 +3016,7 @@ function checkBattleEnd() {
         });
         const survivingCards = battleState.player.filter(c => c.alive).length;
         if (playerAlive) {
-            AudioEngine.play('reward');
+            AudioEngine.play('battleWin');
             state.trophies = (state.trophies || 0) + 1;
             // Difficulty scales up if easy win (2-3 cards survived)
             if (survivingCards >= 3) state.battleDifficulty = Math.min(2.0, (state.battleDifficulty||1) + 0.15);
@@ -3023,7 +3028,7 @@ function checkBattleEnd() {
             battleLog(`Rang: ${rank.icon} <b>${rank.name}</b>`);
             document.getElementById('battlePhaseHint').innerHTML = `<div style="font-size:1.4rem;color:var(--neon-lime);margin:12px 0">🏆 GYŐZELEM!</div><div style="font-size:1.1rem;color:var(--neon-gold);margin:4px 0">${rank.icon} ${rank.name}</div><div style="font-size:0.9rem;color:var(--text)">Serlegek: ${state.trophies}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">Visszatérés 5 mp...</div>`;
         } else {
-            AudioEngine.play('wrong');
+            AudioEngine.play('battleLose');
             // Difficulty scales down on loss
             state.battleDifficulty = Math.max(0.5, (state.battleDifficulty||1) - 0.15);
             const rank = getMilitaryRank();
@@ -3065,12 +3070,13 @@ function executePlayerAttack() {
     const emojis = ['💥','⚡','🔥','💫','☄️','🌟'];
     fireProjectile(`player-${ai}`, `enemy-${ti}`, emojis[rnd(0,emojis.length-1)], () => {
         target.hp -= dmg;
-        AudioEngine.play('correct');
+        AudioEngine.play('hit');
         showDamage(`enemy-${ti}`, dmg);
         battleLog(`<span class="log-player">${attacker.name}</span> → <span class="log-enemy">${target.name}</span>: <span class="log-dmg">-${dmg} HP</span>`);
 
         if (target.hp <= 0) {
             target.hp = 0; target.alive = false;
+            AudioEngine.play('destroy');
             battleLog(`<span class="log-enemy">${target.name}</span> megsemmisült!`);
         }
 
@@ -3110,12 +3116,13 @@ function enemyTurn() {
     const emojis = ['💀','🩸','👊','💢','🗡️','☠️'];
     fireProjectile(`enemy-${ai}`, `player-${ti}`, emojis[rnd(0,emojis.length-1)], () => {
         target.hp -= dmg;
-        AudioEngine.play('wrong');
+        AudioEngine.play('hit');
         showDamage(`player-${ti}`, dmg);
         battleLog(`<span class="log-enemy">${attacker.name}</span> → <span class="log-player">${target.name}</span>: <span class="log-dmg">-${dmg} HP</span>`);
 
         if (target.hp <= 0) {
             target.hp = 0; target.alive = false;
+            AudioEngine.play('destroy');
             battleLog(`<span class="log-player">${target.name}</span> megsemmisült!`);
         }
 
