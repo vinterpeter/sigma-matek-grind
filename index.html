@@ -1970,6 +1970,31 @@ function showHint() {
             const b = Math.min(parseInt(nums[nums.length-1]), 20);
             html += renderRodComparison(a, b);
         }
+    } else if (currentProblemType === 'wordProblem') {
+        // Word problem: extract numbers from story and show as rod equation
+        const storyText = (window._currentStoryText || '');
+        const nums = storyText.match(/\d+/g);
+        if (nums && nums.length >= 2) {
+            const allNums = nums.map(n => parseInt(n)).filter(n => n <= 20);
+            // Figure out if it's addition or subtraction from the answer
+            if (allNums.length >= 2) {
+                const n1 = allNums[0], n2 = allNums[1];
+                if (currentAnswer === n1 + n2) {
+                    // Addition
+                    html = renderRodEquation(n1, '+', n2, currentAnswer);
+                } else if (currentAnswer === n1 - n2) {
+                    // Subtraction
+                    html = renderRodEquation(n1, '−', n2, currentAnswer);
+                } else if (currentAnswer === n2 - n1) {
+                    html = renderRodEquation(n2, '−', n1, currentAnswer);
+                } else {
+                    // Fallback: just show answer rod
+                    html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+                }
+            }
+        } else {
+            html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+        }
     } else {
         // Number problem — show the equation with rods
         html = renderRodProblem();
@@ -2060,6 +2085,31 @@ function renderRodNumber(n) {
     if (n <= 0) return makeRod(0);
     if (n <= 10) return makeRod(n);
     return makeRod(10) + makeRod(n - 10);
+}
+
+function renderRodEquation(a, op, b, result) {
+    let html = '';
+    if (op === '+' && result > 10) {
+        const toTen = 10 - a;
+        const rest = b - toTen;
+        html += `<div class="rod-row">${makeRod(a)}${makeRod(b)}</div>`;
+        if (toTen > 0 && rest > 0) {
+            html += `<div class="rod-row">${makeRod(a)}${makeRod(toTen)}${makeRod(rest)}</div>`;
+        }
+        html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result - 10)}</div>`;
+    } else if (op === '−' && a > 10) {
+        const over10 = a - 10;
+        html += `<div class="rod-row">${makeRod(10)}${makeRod(over10)}</div>`;
+        if (result > 10) {
+            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(over10 - b)}${makeRod(b)}</div>`;
+        } else {
+            html += `<div class="rod-row">${makeRod(10)}${makeRodMystery(result)}${makeRod(b)}</div>`;
+        }
+    } else {
+        html += `<div class="rod-row">${makeRod(a)}${makeRod(b)}</div>`;
+        html += `<div class="rod-row">${makeRodMystery(result)}</div>`;
+    }
+    return html;
 }
 
 function renderRodComparison(a, b) {
