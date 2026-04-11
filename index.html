@@ -965,7 +965,7 @@
             <div class="top-bar-left">
                 <span class="top-stat" style="font-size:1.1rem">🔥 <span id="streakDisplay" style="font-size:1.1rem">0</span></span>
                 <span class="top-stat">✅ <span id="correctDisplay">0</span></span>
-                <span class="top-stat" id="rankDisplay">🔰 Újonc</span>
+                <span class="top-stat top-btn" id="rankDisplay" onclick="openRankOverlay()">🔰 Újonc</span>
             </div>
             <div class="top-bar-center">
                 <span class="top-level" id="levelBadge">LVL 1</span>
@@ -1247,6 +1247,17 @@
 </div>
 
 <!-- Shop -->
+<!-- Rank Overlay -->
+<div class="battle-select-overlay" id="rankOverlay">
+    <div class="battle-select-modal">
+        <h3>⚔️ Katonai rangok</h3>
+        <div id="rankOverlayContent"></div>
+        <div class="battle-actions">
+            <button class="battle-btn close" onclick="closeRankOverlay()">Bezár</button>
+        </div>
+    </div>
+</div>
+
 <div class="battle-select-overlay" id="shopOverlay">
     <div class="battle-select-modal">
         <h3>🛒 Kártya Bolt</h3>
@@ -1485,6 +1496,7 @@ const state = {
     questionCount: 0,
     eventLog: [],
     trophies: 0,
+    battleLosses: 0,
     battleDifficulty: 1.0,
 };
 
@@ -1601,6 +1613,7 @@ function loadState() {
         state.questionCount = p.questionCount || 0;
         state.eventLog = p.eventLog || [];
         state.trophies = p.trophies || 0;
+        state.battleLosses = p.battleLosses || 0;
         state.battleDifficulty = p.battleDifficulty || 1.0;
         const today = new Date().toDateString();
         if (localStorage.getItem('sigmaDay3') !== today) { state.dailyCorrect=0; state.dailyClaimed=false; localStorage.setItem('sigmaDay3',today); }
@@ -2917,6 +2930,42 @@ function getMilitaryRank() {
     return rank;
 }
 
+function openRankOverlay() {
+    const t = state.trophies || 0;
+    const losses = state.battleLosses || 0;
+    const total = t + losses;
+    const currentRank = getMilitaryRank();
+
+    let html = `<div style="text-align:center;margin-bottom:12px">
+        <div style="font-size:1.4rem;margin-bottom:4px">${currentRank.icon} ${currentRank.name}</div>
+        <div style="font-size:0.85rem;color:var(--text-dim)">
+            🏆 <span style="color:var(--neon-lime)">${t} győzelem</span> &nbsp;
+            💀 <span style="color:var(--neon-mag)">${losses} vereség</span> &nbsp;
+            ⚔️ <span style="color:var(--text)">${total} csata</span>
+            ${total > 0 ? `<span style="color:var(--text-dim);margin-left:6px">(${Math.round(t/total*100)}% győzelem)</span>` : ''}
+        </div>
+    </div>`;
+    html += '<table class="admin-table" style="font-size:0.8rem"><thead><tr><th></th><th>Rang</th><th>Győzelem</th><th></th></tr></thead><tbody>';
+    militaryRanks.forEach((r, i) => {
+        const isCurrent = r.name === currentRank.name;
+        const isAchieved = t >= r.min;
+        const nextMin = i < militaryRanks.length - 1 ? militaryRanks[i+1].min : null;
+        const bg = isCurrent ? 'background:rgba(0,240,255,0.1);' : '';
+        const opacity = isAchieved ? '' : 'opacity:0.4;';
+        const marker = isCurrent ? '◀' : '';
+        const progress = isCurrent && nextMin ? `<div style="font-size:0.65rem;color:var(--text-dim)">${t}/${nextMin}</div>` : '';
+        html += `<tr style="${bg}${opacity}"><td>${r.icon}</td><td style="font-weight:${isCurrent?'900':'400'};color:${isCurrent?'var(--neon-cyan)':'var(--text)'}">${r.name}</td><td>${r.min}+</td><td style="color:var(--neon-cyan)">${marker}${progress}</td></tr>`;
+    });
+    html += '</tbody></table>';
+
+    document.getElementById('rankOverlayContent').innerHTML = html;
+    document.getElementById('rankOverlay').classList.add('show');
+}
+
+function closeRankOverlay() {
+    document.getElementById('rankOverlay').classList.remove('show');
+}
+
 let battleState = null;
 
 function cardHP(card) {
@@ -3153,6 +3202,7 @@ function checkBattleEnd() {
             document.getElementById('battlePhaseHint').innerHTML = `<div style="font-size:1.4rem;color:var(--neon-lime);margin:12px 0">🏆 GYŐZELEM!</div><div style="font-size:1.1rem;color:var(--neon-gold);margin:4px 0">${rank.icon} ${rank.name}</div><div style="font-size:0.9rem;color:var(--text)">Serlegek: ${state.trophies}</div><div style="color:var(--text-dim);font-size:0.8rem;margin-top:6px">Visszatérés 5 mp...</div>`;
         } else {
             AudioEngine.play('battleLose');
+            state.battleLosses = (state.battleLosses || 0) + 1;
             // Difficulty scales down on loss
             state.battleDifficulty = Math.max(0.5, (state.battleDifficulty||1) - 0.15);
             const rank = getMilitaryRank();
