@@ -11,6 +11,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
 
+        .emerald { display: inline-block; width: 1em; height: 1em; vertical-align: -0.1em; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpolygon points='8,1 14,4.5 14,11.5 8,15 2,11.5 2,4.5' fill='%2340c040'/%3E%3Cpolygon points='8,1 14,4.5 8,8 2,4.5' fill='%2360e860'/%3E%3Cpolygon points='8,8 14,4.5 14,11.5 8,15' fill='%2330a830'/%3E%3Cpolygon points='8,1 8,8 2,4.5' fill='%2350d850'/%3E%3Cpolygon points='8,8 8,15 2,11.5' fill='%23289028'/%3E%3Cpolygon points='8,3 11,5 8,7 5,5' fill='%2380ff80' opacity='0.4'/%3E%3C/svg%3E") no-repeat center/contain; }
         :root {
             --void: #05050f;
             --surface: #0c0c1e;
@@ -271,6 +272,19 @@
         .compare-btn.correct { background: rgba(168,255,0,0.15) !important; border-color: var(--neon-lime) !important; animation: correctPop 0.4s cubic-bezier(0.34,1.56,0.64,1); }
         .compare-btn.wrong { background: rgba(255,45,149,0.15) !important; border-color: var(--neon-mag) !important; animation: shake 0.4s ease; }
 
+        /* === RULE RECOGNIZE BUTTONS === */
+        .rule-choose-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 10px; max-width: 340px; margin-left: auto; margin-right: auto; }
+        .rule-choose-btn {
+            font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900;
+            padding: 12px 8px; border: 2px solid var(--surface-3); border-radius: 14px;
+            background: var(--surface-2); color: white; cursor: pointer;
+            transition: all 0.12s; -webkit-tap-highlight-color: transparent;
+        }
+        .rule-choose-btn:active { transform: scale(0.93); }
+        .rule-choose-btn:hover { border-color: var(--neon-purple); }
+        .rule-choose-btn.correct { background: rgba(168,255,0,0.15) !important; border-color: var(--neon-lime) !important; animation: correctPop 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .rule-choose-btn.wrong { background: rgba(255,45,149,0.15) !important; border-color: var(--neon-mag) !important; animation: shake 0.4s ease; }
+
         .answers-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 18px; }
         .answer-btn {
             font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 900;
@@ -318,6 +332,8 @@
             .pin-btn { padding: 12px 8px; font-size: 1.8rem; border-radius: 12px; }
             .compare-grid { max-width: 340px; gap: 8px; margin-top: 8px; }
             .compare-btn { font-size: 2.4rem; padding: 16px 8px; }
+            .rule-choose-grid { max-width: 340px; gap: 8px; margin-top: 8px; }
+            .rule-choose-btn { font-size: 1.8rem; padding: 14px 8px; }
             .brainrot-counter { margin: 4px 0; padding: 6px 12px; }
             .action-btn { font-size: 0.8rem; padding: 8px 12px; }
             .daily-section { margin: 4px 0; padding: 8px 12px; }
@@ -956,7 +972,7 @@
                 <span class="top-level-title" id="levelTitle">Kezdő</span>
             </div>
             <div class="top-bar-right">
-                <span class="top-stat">🪙 <span id="tallierDisplay">0</span></span>
+                <span class="top-stat"><span class="emerald"></span> <span id="tallierDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openBadgesPage()">🏆 <span id="trophyDisplay">0</span></span>
                 <span class="top-stat top-btn" onclick="openCollectionPage()">🃏 <span id="tokenDisplay">0</span></span>
             </div>
@@ -999,17 +1015,19 @@
                     <button class="compare-btn" onclick="compareSubmit('=')">=<div style="font-size:0.55rem;margin-top:2px">egyenlő</div></button>
                     <button class="compare-btn" onclick="compareSubmit('>')">&gt;<div style="font-size:0.55rem;margin-top:2px">nagyobb</div></button>
                 </div>
+                <div class="rule-choose-grid" id="ruleChooseArea" style="display:none">
+                </div>
             </div>
         </div>
 
         <!-- BELOW THE FOLD - scroll for extras -->
         <div class="brainrot-counter">
             <button class="action-btn encyclopedia-btn" onclick="openEncyclopedia()">📖 Gyűjtemény</button>
-            <button class="action-btn craft-btn" id="hintBtn" onclick="buyHint()" disabled style="border-color:var(--neon-purple);color:var(--neon-purple)">🧮 Segítség <span style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
-            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Keverés <span style="font-size:0.6rem;opacity:0.7">(1🪙)</span></button>
-            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Harc <span style="font-size:0.6rem;opacity:0.7">(10🪙)</span></button>
-            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Rajzolás <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
-            <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold)">🛒 Bolt <span style="font-size:0.6rem;opacity:0.7">(20🪙)</span></button>
+            <button class="action-btn craft-btn" id="hintBtn" onclick="buyHint()" disabled style="border-color:var(--neon-purple);color:var(--neon-purple)">🧮 Segítség <span style="font-size:0.6rem;opacity:0.7">(1<span class="emerald"></span>)</span></button>
+            <button class="action-btn craft-btn" id="craftBtn" onclick="openCrafting()" disabled>🔬 Keverés <span style="font-size:0.6rem;opacity:0.7">(1<span class="emerald"></span>)</span></button>
+            <button class="action-btn craft-btn" id="battleBtn" onclick="openBattleSelect()" disabled style="border-color:var(--neon-orange);color:var(--neon-orange)">⚔️ Harc <span style="font-size:0.6rem;opacity:0.7">(10<span class="emerald"></span>)</span></button>
+            <button class="action-btn craft-btn" id="creatorBtn" onclick="openCreator()" disabled style="border-color:var(--neon-lime);color:var(--neon-lime)">🎨 Rajzolás <span id="creatorProgress" style="font-size:0.6rem;opacity:0.7">(20<span class="emerald"></span>)</span></button>
+            <button class="action-btn craft-btn" id="shopBtn" onclick="openShop()" disabled style="border-color:var(--neon-gold);color:var(--neon-gold)">🛒 Bolt <span style="font-size:0.6rem;opacity:0.7">(20<span class="emerald"></span>)</span></button>
         </div>
 
         <div class="daily-section">
@@ -1232,7 +1250,7 @@
 <div class="battle-select-overlay" id="shopOverlay">
     <div class="battle-select-modal">
         <h3>🛒 Kártya Bolt</h3>
-        <div class="battle-status">Válassz egy kártyát! Ár: 20🪙</div>
+        <div class="battle-status">Válassz egy kártyát! Ár: 20<span class="emerald"></span></div>
         <div class="battle-select-grid" id="shopGrid" style="grid-template-columns:repeat(3,1fr)"></div>
         <div class="battle-actions">
             <button class="battle-btn close" onclick="closeShop()">Mégse</button>
@@ -1244,7 +1262,7 @@
 <div class="battle-select-overlay" id="battleSelectOverlay">
     <div class="battle-select-modal">
         <h3>Válassz 3 kártyát a csatához!</h3>
-        <div class="battle-status">Költség: 10🪙</div>
+        <div class="battle-status">Költség: 10<span class="emerald"></span></div>
         <div class="battle-select-grid" id="battleSelectGrid"></div>
         <div class="battle-actions">
             <button class="battle-btn attack" id="battleStartBtn" onclick="startBattle()" disabled>Csata!</button>
@@ -1458,7 +1476,7 @@ const state = {
     // Per-type stats: { correct, total }
     typeStats: {
         addition:{correct:0,total:0}, subtraction:{correct:0,total:0},
-        sequence:{correct:0,total:0}, ruleGame:{correct:0,total:0},
+        sequence:{correct:0,total:0}, ruleGame:{correct:0,total:0}, ruleRecognize:{correct:0,total:0},
         potlas:{correct:0,total:0}, compare:{correct:0,total:0},
         wordProblem:{correct:0,total:0}
     },
@@ -1518,7 +1536,7 @@ const badges = [
     {id:"battle5",   icon:"🛡️",name:"Harcos",             desc:"Nyerj meg 5 csatát!",                                check:()=>(state.trophies||0)>=5},
     {id:"battle10",  icon:"🗡️",name:"Bajvívó",            desc:"Nyerj meg 10 csatát!",                               check:()=>(state.trophies||0)>=10},
     // Tallér
-    {id:"rich",      icon:"🪙",name:"Gazdag",             desc:"Gyűjts össze 50 tallért egyszerre!",                 check:()=>state.talpieres>=50},
+    {id:"rich",      icon:"💎",name:"Gazdag",             desc:"Gyűjts össze 50 tallért egyszerre!",                 check:()=>state.talpieres>=50},
 ];
 
 // ==================== BRAINROT CARD DECK ====================
@@ -1603,7 +1621,7 @@ let currentAnswer=0, currentAnswerType='number', timerInterval=null, timerValue=
 let pinValue = '', currentRetries = 0;
 
 // --- ADAPTIVE PROBLEM SELECTION ---
-const problemTypes = ['addition','subtraction','sequence','ruleGame','potlas','compare','wordProblem'];
+const problemTypes = ['addition','subtraction','sequence','ruleGame','potlas','compare','wordProblem','ruleRecognize'];
 let currentProblemType = '';
 
 function pickProblemType() {
@@ -1617,12 +1635,21 @@ function pickProblemType() {
             const retry = state.retryQueue[dueIdx];
             state.retryQueue.splice(dueIdx, 1);
             currentProblemType = retry.type;
-            return retry.type;
+            // Gate: ruleGame → ruleRecognize if not mastered yet
+            if (currentProblemType === 'ruleGame') {
+                const rr = state.typeStats.ruleRecognize || { correct: 0, total: 0 };
+                if (rr.total < 10 || (rr.total > 0 && rr.correct / rr.total < 0.8)) {
+                    currentProblemType = 'ruleRecognize';
+                }
+            }
+            return currentProblemType;
         }
     }
 
     // 70%: weighted random favoring weak types
     const weights = problemTypes.map(t => {
+        // Don't select ruleRecognize directly — it replaces ruleGame when needed
+        if (t === 'ruleRecognize') return 0;
         const s = state.typeStats[t] || { correct: 0, total: 0 };
         const rate = s.total > 0 ? s.correct / s.total : 0.5;
         return (1 - rate) + 0.15; // floor ensures mastered types still appear
@@ -1631,10 +1658,20 @@ function pickProblemType() {
     let r = Math.random() * totalW;
     for (let i = 0; i < problemTypes.length; i++) {
         r -= weights[i];
-        if (r <= 0) { currentProblemType = problemTypes[i]; return problemTypes[i]; }
+        if (r <= 0) { currentProblemType = problemTypes[i]; break; }
     }
-    currentProblemType = problemTypes[0];
-    return problemTypes[0];
+    if (!currentProblemType) currentProblemType = problemTypes[0];
+
+    // Gate: ruleGame → ruleRecognize until recognition is mastered
+    if (currentProblemType === 'ruleGame') {
+        const rr = state.typeStats.ruleRecognize || { correct: 0, total: 0 };
+        const rrRate = rr.total > 0 ? rr.correct / rr.total : 0;
+        if (rr.total < 10 || rrRate < 0.8) {
+            currentProblemType = 'ruleRecognize';
+        }
+    }
+
+    return currentProblemType;
 }
 
 function recordAnswer(type, isCorrect) {
@@ -1748,6 +1785,50 @@ function genRuleGame() {
     html += '</div>';
     document.getElementById('problem').innerHTML = html;
     document.getElementById('problemStory').style.display = 'none';
+}
+
+// 4b. Szabályfelismerés (csak a szabályt kell megtalálni, számolni nem kell)
+function genRuleRecognize() {
+    const rule = rnd(1,3) * (Math.random()>0.3 ? 1 : -1);
+    const pairs = [];
+    const usedInputs = new Set();
+    let tries = 0;
+    while(pairs.length<4 && tries<50) {
+        tries++;
+        const inp = rnd(rule>0?0:Math.abs(rule), rule>0?20-rule:20);
+        if(usedInputs.has(inp)) continue;
+        const out = inp + rule;
+        if(out<0||out>20) continue;
+        usedInputs.add(inp);
+        pairs.push({inp, out});
+    }
+    if(pairs.length<4) return genRuleRecognize();
+    currentAnswer = rule; currentAnswerType = 'ruleChoose';
+    document.getElementById('problemLabel').textContent = 'Mi a szabály? Mit csinál a gép?';
+    let html = '<div class="rule-table">';
+    pairs.forEach(p => {
+        html += `<div class="rule-row">
+            <span class="rule-cell">${p.inp}</span>
+            <span class="rule-arrow">→</span>
+            <span class="rule-cell">${p.out}</span>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('problem').innerHTML = html;
+    document.getElementById('problemStory').style.display = 'none';
+
+    // Build answer buttons: all options from -3 to +3 (excluding 0), shuffled
+    const options = [-3,-2,-1,1,2,3];
+    const area = document.getElementById('ruleChooseArea');
+    area.innerHTML = options.map(o => {
+        const label = o > 0 ? `+${o}` : `${o}`;
+        return `<button class="rule-choose-btn" onclick="ruleChooseSubmit(${o})">${label}</button>`;
+    }).join('');
+}
+
+function ruleChooseSubmit(value) {
+    if(!isAnswering) return;
+    processAnswer(value);
 }
 
 // 5. Pótlás (hiányzó szám)
@@ -1877,14 +1958,17 @@ function readStory() {
 // --- MAIN GENERATE ---
 function generateProblem() {
     pinValue = ''; currentRetries = 0; updatePinDisplay();
-    // Reset compare buttons from previous round
+    // Reset compare/ruleChoose buttons from previous round
     document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
+    document.querySelectorAll('.rule-choose-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
     // Show/hide inputs
     const pinArea = document.getElementById('pinpadArea');
     const cmpArea = document.getElementById('compareArea');
-    if(type==='compare') { pinArea.style.display='none'; cmpArea.style.display=''; }
-    else { pinArea.style.display=''; cmpArea.style.display='none'; }
+    const ruleChooseArea = document.getElementById('ruleChooseArea');
+    if(type==='compare') { pinArea.style.display='none'; cmpArea.style.display=''; ruleChooseArea.style.display='none'; }
+    else if(type==='ruleRecognize') { pinArea.style.display='none'; cmpArea.style.display='none'; ruleChooseArea.style.display=''; }
+    else { pinArea.style.display=''; cmpArea.style.display='none'; ruleChooseArea.style.display='none'; }
     document.getElementById('problemStory').style.display = 'none';
 
     switch(type) {
@@ -1892,6 +1976,7 @@ function generateProblem() {
         case 'subtraction': genSubtraction(); break;
         case 'sequence': genSequence(); break;
         case 'ruleGame': genRuleGame(); break;
+        case 'ruleRecognize': genRuleRecognize(); break;
         case 'potlas': genPotlas(); break;
         case 'compare': genCompare(); break;
         case 'wordProblem': genWordProblem(); break;
@@ -2033,6 +2118,19 @@ function showHint() {
             }
         } else {
             html = `<div class="rod-row">${makeRodMystery(currentAnswer)}</div>`;
+        }
+    } else if (currentProblemType === 'ruleRecognize') {
+        // Rule recognize: show the difference between first pair as rods
+        const cells = document.querySelectorAll('.rule-cell');
+        if (cells.length >= 2) {
+            const firstIn = parseInt(cells[0].textContent);
+            const firstOut = parseInt(cells[1].textContent);
+            if (!isNaN(firstIn) && !isNaN(firstOut)) {
+                const diff = firstOut - firstIn;
+                html += `<div class="rod-row">${renderRodNumber(firstIn)}</div>`;
+                html += `<div class="rod-row">${renderRodNumber(firstOut)}</div>`;
+                html += `<div style="color:var(--neon-cyan);font-size:1rem;margin-top:8px;text-align:center">Különbség: ${makeRodMystery(Math.abs(diff))}</div>`;
+            }
         }
     } else if (currentProblemType === 'sequence') {
         // Sequence: figure out step from visible numbers, show operation
@@ -2252,12 +2350,19 @@ function processAnswer(answer) {
     const isCorrect = (answer === currentAnswer);
     recordAnswer(currentProblemType, isCorrect);
     logEvent('answer', { type: currentProblemType, correct: isCorrect, answer, expected: currentAnswer, ms: elapsed, fast: isFast, problem: document.getElementById('problem').textContent.trim().slice(0,60) });
-    const displayEl = currentAnswerType==='compare'
-        ? document.querySelector(`.compare-btn:nth-child(${answer==='<'?1:answer==='='?2:3})`)
-        : document.getElementById('pinDisplay');
+    let displayEl;
+    if (currentAnswerType === 'compare') {
+        displayEl = document.querySelector(`.compare-btn:nth-child(${answer==='<'?1:answer==='='?2:3})`);
+    } else if (currentAnswerType === 'ruleChoose') {
+        const options = [-3,-2,-1,1,2,3];
+        const idx = options.indexOf(answer);
+        displayEl = idx >= 0 ? document.querySelectorAll('.rule-choose-btn')[idx] : null;
+    } else {
+        displayEl = document.getElementById('pinDisplay');
+    }
 
     if (isCorrect) {
-        if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'correct':'correct-flash');
+        if(displayEl) displayEl.classList.add((currentAnswerType==='compare'||currentAnswerType==='ruleChoose')?'correct':'correct-flash');
         state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
@@ -2286,7 +2391,7 @@ function processAnswer(answer) {
         }
     } else {
         currentRetries++;
-        if(displayEl) displayEl.classList.add(currentAnswerType==='compare'?'wrong':'wrong-flash');
+        if(displayEl) displayEl.classList.add((currentAnswerType==='compare'||currentAnswerType==='ruleChoose')?'wrong':'wrong-flash');
         state.streak=0; state.fastStreak=0;
         AudioEngine.play('wrong');
 
@@ -2298,6 +2403,7 @@ function processAnswer(answer) {
             setTimeout(() => {
                 updatePinDisplay();
                 document.querySelectorAll('.compare-btn').forEach(b => b.classList.remove('wrong','correct'));
+                document.querySelectorAll('.rule-choose-btn').forEach(b => b.classList.remove('wrong','correct'));
                 isAnswering = true;
                 startTimer();
             }, 800);
@@ -2308,6 +2414,11 @@ function processAnswer(answer) {
         // Second wrong: show correct answer, move on
         if(currentAnswerType==='number') {
             document.getElementById('pinDisplay').innerHTML = `<span style="color:var(--neon-mag)">❌ ${answer}</span> <span style="color:var(--text-dim)">→</span> <span style="color:var(--neon-lime)">✅ ${currentAnswer}</span>`;
+        } else if(currentAnswerType==='ruleChoose') {
+            const options = [-3,-2,-1,1,2,3];
+            document.querySelectorAll('.rule-choose-btn').forEach((b,i) => {
+                if(options[i]===currentAnswer) b.classList.add('correct');
+            });
         } else {
             document.querySelectorAll('.compare-btn').forEach(b=>{
                 const signs=['<','=','>'];
@@ -3215,7 +3326,7 @@ function fmtTime(ts) {
     return `${d.getMonth()+1}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
 }
 
-const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Sorozat',ruleGame:'Szabályjáték',potlas:'Pótlás',compare:'Összehasonlítás',wordProblem:'Szöveges'};
+const typeNames = {addition:'Összeadás',subtraction:'Kivonás',sequence:'Sorozat',ruleGame:'Szabályjáték',ruleRecognize:'Szabályfelismerés',potlas:'Pótlás',compare:'Összehasonlítás',wordProblem:'Szöveges'};
 
 function loadAllPlayers() {
     const c = document.getElementById('adminContent');
@@ -3270,7 +3381,7 @@ function renderAdminPlayerList() {
             return rank;
         };
         c.innerHTML = `<div style="margin-bottom:10px;font-size:0.8rem;color:var(--text-dim)">${adminPlayers.length} játékos</div>
-        <table class="admin-table"><thead><tr><th>Játékos</th><th>Válaszok</th><th>Helyes%</th><th>🪙</th><th>🏆</th><th>Rang</th><th>🃏</th></tr></thead><tbody>
+        <table class="admin-table"><thead><tr><th>Játékos</th><th>Válaszok</th><th>Helyes%</th><th>💎</th><th>🏆</th><th>Rang</th><th>🃏</th></tr></thead><tbody>
         ${adminPlayers.map(p => {
             const rank = rankOf(p);
             const pct = p.total > 0 ? Math.round((p.correct||0) / p.total * 100) : 0;
@@ -3554,7 +3665,7 @@ function openUpgrade() {
             const col = v>0?'var(--neon-lime)':'var(--neon-mag)';
             return `<span style="color:${col}">${icon}${v>0?'+':''}${v}</span>`;
         }).join(' ');
-        el.innerHTML = `<div style="font-size:1.8rem">${item.emoji}</div><div class="bsc-name">${item.name}</div><div style="font-size:0.55rem;margin-top:2px">${modsText}</div><div style="font-size:0.6rem;color:var(--neon-gold);margin-top:2px">${item.cost}🪙</div>`;
+        el.innerHTML = `<div style="font-size:1.8rem">${item.emoji}</div><div class="bsc-name">${item.name}</div><div style="font-size:0.55rem;margin-top:2px">${modsText}</div><div style="font-size:0.6rem;color:var(--neon-gold);margin-top:2px">${item.cost}<span class="emerald"></span></div>`;
         if (canAfford) el.onclick = () => startUpgrade(item);
         grid.appendChild(el);
     });
