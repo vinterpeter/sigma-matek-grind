@@ -299,4 +299,179 @@ const italianBrainrots = [
     story: "Egy majom aki vadul csapkodja a zongora billentyűit és nagyon hangosan zenél! A Virtuoso család leglelkesebb de legzajosabb tagja. Az Ecco Cavallo Virtuoso mindig csitítja, de hiába! 🐒🎹",
     kidRating: "safe"
   },
+  {
+    id: "hankini_alliance", name: "Hankini Alliance", category: "italian", rarity: "Epic",
+    image: "images/hankini_alliance.jpg", prompt: null,
+    story: "Egy brainrot szövetség akik együtt tartják össze a Brainrot Birodalmat! Erős barátok akik mindig egymás mellett állnak és együtt küzdenek a bajban. Az erejük az összetartásból ered! 🤝⚔️",
+    kidRating: "safe",
+    stats: { hp: 90, attack: 20, defense: 15, rizz: 70, sigma: 75, brainrot: 72 }
+  },
+  {
+    id: "hankini_trollini", name: "Hankini Trollini", category: "italian", rarity: "Rare",
+    image: "images/hankini_trollini.jpg", prompt: null,
+    story: "Egy kis huncut troll brainrot aki mindig vicceket csinál és elbújik a sarkokban! Ha meglátod, fuss — mert biztos lesz valami jó poén! A Hankini Alliance legviccesebb tagja! 🧌😜",
+    kidRating: "safe",
+    stats: { hp: 58, attack: 14, defense: 7, rizz: 52, sigma: 48, brainrot: 70 }
+  },
+  {
+    id: "paellino_croquetto", name: "Paellino Croquetto", category: "italian", rarity: "Rare",
+    image: "images/paellino__croquetto.jpg", prompt: null,
+    story: "Egy spanyol-olasz fúziós brainrot akinek a fején paella és a testén egy nagy krokett! A két konyha keveredéséből született, és mindenki imádja! 🥘🇪🇸",
+    kidRating: "safe",
+    stats: { hp: 64, attack: 13, defense: 10, rizz: 58, sigma: 50, brainrot: 55 }
+  },
+  {
+    id: "racooni_jandelini", name: "Racooni Jandelini", category: "italian", rarity: "Epic",
+    image: "images/racooni_jandelini.jpg", prompt: null,
+    story: "Egy mosómedve aki flipflop papucsban jár és mindig lazán csattogtatja! A strandok királya a Brainrot Birodalomban, aki egész nap napozik és jégkrémet eszik! 🦝🩴",
+    kidRating: "safe",
+    stats: { hp: 82, attack: 19, defense: 13, rizz: 68, sigma: 60, brainrot: 72 }
+  },
+  {
+    id: "vacusini_en_la_escuelini", name: "Vacusini En La Escuelini", category: "italian", rarity: "Rare",
+    image: "images/vacusini_en_la_escuelini.jpg", prompt: null,
+    story: "Egy porszívó aki iskolába jár és megtanulja a matekot! A padok között csúszkál és mindent felszív ami nem odavaló — különösen a hibás válaszokat a füzetből! 🧹📚",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 13, defense: 9, rizz: 45, sigma: 58, brainrot: 62 }
+  },
+  {
+    id: "wakil_merge_fellas", name: "Wakil Merge Fellas", category: "italian", rarity: "Legendary",
+    image: "images/wakil_merge_fellas.jpg", prompt: null,
+    story: "Egy titokzatos brainrot-egyesülés, ami három hős összeolvadásából jött létre! Senki sem tudja ki volt eredetileg — de együtt hatalmas erő! A fúzió mestere! ✨🔥",
+    kidRating: "safe",
+    stats: { hp: 115, attack: 26, defense: 17, rizz: 82, sigma: 85, brainrot: 88 }
+  },
+  {
+    id: "wal_wal_wal_sahini", name: "Wal Wal Wal Sahini", category: "italian", rarity: "Rare",
+    image: "images/wal_wal_wal_sahini.jpg", prompt: null,
+    story: "Egy lassan sétáló, bolyhos brainrot aki folyton azt mondja 'wal wal wal'! Éjszaka jár a birodalomban és mindenkit altatódallal ringat el! A Tung Tung Tung Sahur éjszakai párja! 🌙😴",
+    kidRating: "safe",
+    stats: { hp: 62, attack: 12, defense: 11, rizz: 50, sigma: 55, brainrot: 58 }
+  },
+  {
+    id: "pianino_gattino", name: "Pianino Gattino", category: "italian", rarity: "Rare",
+    image: null, prompt: "an elegant italian cat wearing a bow tie playing a grand piano with its tail, sparkling notes, renaissance background, brainrot meme style",
+    story: "Egy zongorázó cicó aki a farkával ütögeti a billentyűket! Olyan gyönyörűen játszik, hogy a madarak is megállnak hallgatni. Az Ecco Cavallo Virtuoso macskás tanítványa! 🎹🐱",
+    kidRating: "safe",
+    stats: { hp: 62, attack: 13, defense: 9, rizz: 58, sigma: 60, brainrot: 55 }
+  },
+  {
+    id: "spaghetto_toro", name: "Spaghetto Toro", category: "italian", rarity: "Epic",
+    image: null, prompt: "a giant angry bull made of spaghetti noodles with tomato sauce horns, italian brainrot style, cartoon, colorful",
+    story: "Egy hatalmas bika akinek a szarvai spagetti tésztából vannak! Ha dühös, paradicsomszósz fröcsög mindenfelé. A legéhesebb állat a birodalomban! 🍝🐂",
+    kidRating: "safe",
+    stats: { hp: 90, attack: 22, defense: 12, rizz: 60, sigma: 72, brainrot: 75 }
+  },
+  {
+    id: "pizzarino_volante", name: "Pizzarino Volante", category: "italian", rarity: "Epic",
+    image: null, prompt: "a flying pizza with cheese wings and pepperoni propeller soaring through blue sky, italian brainrot cartoon style",
+    story: "Egy repülő pizza akinek sajt szárnyai vannak és pepperoni propellerrel száll az égen! Házhoz szállít mindenhova a Brainrot Birodalomban! 🍕✈️",
+    kidRating: "safe",
+    stats: { hp: 82, attack: 20, defense: 13, rizz: 72, sigma: 65, brainrot: 70 }
+  },
+  {
+    id: "gelatissimo_dinosauro", name: "Gelatissimo Dinosauro", category: "italian", rarity: "Legendary",
+    image: null, prompt: "a giant dinosaur made of chocolate vanilla and strawberry gelato ice cream with waffle cone spikes, italian brainrot style",
+    story: "Egy óriási dinoszaurusz akinek teste csoki-vanília-eper fagyiból van! Ha elolvad, új íz jön elő! A birodalom legfinomabb szörnye, akit nem lehet nem megenni! 🦖🍦",
+    kidRating: "safe",
+    stats: { hp: 110, attack: 24, defense: 17, rizz: 82, sigma: 78, brainrot: 88 }
+  },
+  {
+    id: "parmigiano_guerrero", name: "Parmigiano Guerrero", category: "italian", rarity: "Rare",
+    image: null, prompt: "a knight made of parmigiano cheese holding a cheese sword and cheese shield, italian brainrot cartoon",
+    story: "Egy sajtpáncélos harcos aki sajtkarddal és sajtpajzzsal küzd! A Parmigiano-Reggiano család leghíresebb lovagja, aki sajtcsatákat vív a sajthercegségben! 🧀⚔️",
+    kidRating: "safe",
+    stats: { hp: 66, attack: 15, defense: 11, rizz: 55, sigma: 62, brainrot: 58 }
+  },
+  {
+    id: "mozzarella_meteor", name: "Mozzarella Meteor", category: "italian", rarity: "Epic",
+    image: null, prompt: "a glowing mozzarella cheese meteor falling from space toward earth with flames, italian brainrot style cartoon",
+    story: "Egy izzó sajt-meteor ami az űrből zuhan a Földre! Ahol becsapódik, friss pizza keletkezik! A Brainrot Birodalom csillaghullása minden este! ☄️🧀",
+    kidRating: "safe",
+    stats: { hp: 84, attack: 23, defense: 10, rizz: 65, sigma: 68, brainrot: 80 }
+  },
+  {
+    id: "carbonaro_samurai", name: "Carbonaro Samurai", category: "italian", rarity: "Legendary",
+    image: null, prompt: "a samurai warrior with a katana made of spaghetti carbonara, ham armor, egg splash effects, italian brainrot anime style",
+    story: "Egy szamuráj akinek a kardja carbonara spagetti, a páncélja sonka! Mozgása olyan gyors, hogy senki sem látja a tojásos szószt szétcsapódni! A Brainrot szamurájok legendás harcosa! 🍝⚔️",
+    kidRating: "safe",
+    stats: { hp: 115, attack: 28, defense: 16, rizz: 85, sigma: 90, brainrot: 82 }
+  },
+  {
+    id: "ravioli_spaziale", name: "Ravioli Spaziale", category: "italian", rarity: "Rare",
+    image: null, prompt: "a cute ravioli pasta astronaut wearing a space helmet riding a small rocket through stars, italian brainrot style",
+    story: "Egy űrhajós ravioli aki űrsisakban és kis rakétán utazik a csillagok között! A Brainrot űrhajózási program első résztvevője, aki már a Marson is járt! 🛸🥟",
+    kidRating: "safe",
+    stats: { hp: 58, attack: 13, defense: 9, rizz: 52, sigma: 55, brainrot: 60 }
+  },
+  {
+    id: "salami_ninja", name: "Salami Ninja", category: "italian", rarity: "Rare",
+    image: null, prompt: "a salami sausage character dressed as a ninja in black mask, stealthy pose in shadows, italian brainrot cartoon",
+    story: "Egy szalámi-rudacska nindzsa aki árnyékban lopakodik! Fekete maszkot visel és olyan csendesen mozog, hogy senki sem hallja meg! A leglopakodóbb brainrot! 🥷🌭",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 16, defense: 7, rizz: 58, sigma: 65, brainrot: 62 }
+  },
+  {
+    id: "lasagna_golemo", name: "Lasagna Golemo", category: "italian", rarity: "Epic",
+    image: null, prompt: "a giant lasagna layered golem monster stomping through italy, cheese dripping, meat sauce, italian brainrot style",
+    story: "Egy óriási gólem akinek minden rétege lasagna! Minél mérgesebb, annál több réteg nő rajta. A legmasszívabb tészta-szörny a birodalomban! 🏗️🍝",
+    kidRating: "safe",
+    stats: { hp: 94, attack: 19, defense: 16, rizz: 60, sigma: 72, brainrot: 78 }
+  },
+  {
+    id: "cannelloni_wizardino", name: "Cannelloni Wizardino", category: "italian", rarity: "Epic",
+    image: null, prompt: "a wizard holding a cannelloni pasta wand casting magical spells, pointy hat, italian brainrot fantasy style",
+    story: "Egy tészta-varázsló aki cannelloni pálcával varázsol! A varázslatai mindig valami finom étellé változtatják az ellenséget! 🧙‍♂️🪄",
+    kidRating: "safe",
+    stats: { hp: 80, attack: 22, defense: 11, rizz: 70, sigma: 78, brainrot: 72 }
+  },
+  {
+    id: "tiramisu_drakonio", name: "Tiramisu Drakonio", category: "italian", rarity: "Legendary",
+    image: null, prompt: "a majestic dragon with wings made of tiramisu layers breathing coffee fire, italian brainrot fantasy style",
+    story: "Egy sárkány akinek szárnyai tiramisu rétegekből készültek! Ha tüzet fúj, kávé-kakaó szikrákat lő! Az olasz desszertek királya és a birodalom legédesebb réme! 🐉☕",
+    kidRating: "safe",
+    stats: { hp: 112, attack: 26, defense: 16, rizz: 88, sigma: 82, brainrot: 90 }
+  },
+  {
+    id: "panettone_robotto", name: "Panettone Robotto", category: "italian", rarity: "Rare",
+    image: null, prompt: "a christmas panettone bread shaped as a mech robot with glowing eyes, winter background, italian brainrot style",
+    story: "Egy karácsonyi panettone kenyér aki robotpáncélba bújt! Csak decemberben aktív, de akkor nagyon hasznos — minden karácsonyi bajt elhárít! 🤖🎄",
+    kidRating: "safe",
+    stats: { hp: 62, attack: 13, defense: 11, rizz: 55, sigma: 50, brainrot: 60 }
+  },
+  {
+    id: "focaccio_fantasma", name: "Focaccio Fantasma", category: "italian", rarity: "Rare",
+    image: null, prompt: "a ghost made of focaccia bread with rosemary and salt, floating in a dark kitchen, italian brainrot spooky style",
+    story: "Egy szellem aki focaccia kenyérből van és lebeg! Sós rozmaringszaga van és a konyhában kísért éjszakánként — ahova megy, minden pék felriad! 👻🍞",
+    kidRating: "safe",
+    stats: { hp: 58, attack: 14, defense: 8, rizz: 52, sigma: 58, brainrot: 65 }
+  },
+  {
+    id: "calamari_piratissimo", name: "Calamari Piratissimo", category: "italian", rarity: "Epic",
+    image: null, prompt: "a squid pirate captain with 8 arms each holding a sword, tricorn hat, on a pasta ship, italian brainrot style",
+    story: "Egy kalamári-kalóz akinek minden karján egy-egy kardja van! A Brainrot tenger legfélelmetesebb fosztogatója, aki tésztahajókat foglyul ejt! 🦑🏴‍☠️",
+    kidRating: "safe",
+    stats: { hp: 86, attack: 22, defense: 12, rizz: 72, sigma: 70, brainrot: 75 }
+  },
+  {
+    id: "prosciutto_cavaliere", name: "Prosciutto Cavaliere", category: "italian", rarity: "Rare",
+    image: null, prompt: "a knight in red ham armor riding a horse at night, full moon, italian brainrot style",
+    story: "Egy sonka-lovag aki vörös páncélban lovagol! A birodalom éjszakai őrzője, aki sosem alszik és mindig őrszemet áll a sonka-királyságban! 🍖🐴",
+    kidRating: "safe",
+    stats: { hp: 64, attack: 14, defense: 11, rizz: 58, sigma: 60, brainrot: 55 }
+  },
+  {
+    id: "espressini_jetpackini", name: "Espressini Jetpackini", category: "italian", rarity: "Rare",
+    image: null, prompt: "an espresso coffee cup character wearing a jetpack flying fast with coffee steam trail, italian brainrot style",
+    story: "Egy eszpresszó-csésze akinek jetpackje van és kávégőzzel repül! A leggyorsabb futár a Brainrot Birodalomban, aki a Cappuccino Assassino unokaöccse! ☕🚀",
+    kidRating: "safe",
+    stats: { hp: 56, attack: 15, defense: 7, rizz: 65, sigma: 58, brainrot: 62 }
+  },
+  {
+    id: "macarone_vulcano", name: "Macarone Vulcano", category: "italian", rarity: "Legendary",
+    image: null, prompt: "a giant volcano shaped like macaroni pasta erupting with hot molten cheese lava, italian brainrot style",
+    story: "Egy vulkánméretű makaróni-hegy ami forró sajt-lávát köp! A leghangosabb és legforróbb brainrot, akinek a dühe mindenkit elöl űz! 🌋🍝",
+    kidRating: "safe",
+    stats: { hp: 110, attack: 26, defense: 15, rizz: 80, sigma: 85, brainrot: 88 }
+  }
 ];

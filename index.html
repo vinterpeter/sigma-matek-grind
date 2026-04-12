@@ -1082,6 +1082,7 @@
         </div>
         <div class="reward-title" id="rewardTitle"></div>
         <div class="reward-desc" id="rewardDesc"></div>
+        <div class="reward-stats" id="rewardStats" style="font-weight:800;color:var(--neon-cyan);margin:6px 0;letter-spacing:0.5px"></div>
         <button class="story-read-btn" id="rewardReadBtn" onclick="readRewardStory()" style="margin:8px auto 0;display:inline-flex"><span>🔊</span> Felolvasás</button>
         <div class="reward-tokens" id="rewardTokens"></div>
         <button class="reward-claim-btn" onclick="claimReward()">ELFOGADOM 💎</button>
@@ -1177,9 +1178,9 @@
     <div class="encyclopedia-header">
         <h2>📖 BRAINROT ENCIKLOPÉDIA</h2>
         <div class="encyclopedia-tabs">
-            <button class="encyclopedia-tab active" onclick="filterEncyclopedia('all')" id="tabAll">Mind (100)</button>
-            <button class="encyclopedia-tab" onclick="filterEncyclopedia('classic')" id="tabClassic">🧠 Classic (50)</button>
-            <button class="encyclopedia-tab" onclick="filterEncyclopedia('italian')" id="tabItalian">🇮🇹 Italian (50)</button>
+            <button class="encyclopedia-tab active" onclick="filterEncyclopedia('all')" id="tabAll">Mind</button>
+            <button class="encyclopedia-tab" onclick="filterEncyclopedia('classic')" id="tabClassic">🧠 Classic</button>
+            <button class="encyclopedia-tab" onclick="filterEncyclopedia('italian')" id="tabItalian">🇮🇹 Italian</button>
             <button class="encyclopedia-tab" onclick="filterEncyclopedia('safe')" id="tabSafe">✅ Gyerekbarát</button>
             <button class="encyclopedia-close" onclick="closeEncyclopedia()">Vissza ✖</button>
         </div>
@@ -1196,6 +1197,7 @@
             <div class="ency-detail-rarity" id="encyDetailRarity"></div>
             <div id="encyDetailOlderBadge"></div>
             <div class="ency-detail-cat" id="encyDetailCat"></div>
+            <div class="ency-detail-stats" id="encyDetailStats" style="font-weight:800;color:var(--neon-cyan);margin:6px 0;font-size:0.95rem;letter-spacing:0.5px"></div>
             <div class="ency-detail-story" id="encyDetailStory"></div>
             <button class="ency-detail-play-btn" id="encyDetailPlayBtn" onclick="playEncyStory()">
                 <span id="encyPlayIcon">🔊</span> Felolvasás
@@ -2458,21 +2460,26 @@ function showBrainrotReward() {
     const card = allBrainrotCards[Math.floor(Math.random()*allBrainrotCards.length)];
     const seed = Math.floor(Math.random()*999999);
     const imgUrl = card.image || pollinationsUrl(card.prompt, seed);
+    // If the base card defines explicit hp/attack/defense use them; otherwise roll.
+    const baseStats = card.stats || {};
+    const rolled = { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) };
+    if(card.rarity==='Epic') Object.keys(rolled).forEach(k=>rolled[k]=Math.min(140,rolled[k]+15));
+    if(card.rarity==='Legendary') Object.keys(rolled).forEach(k=>rolled[k]=Math.min(170,rolled[k]+30));
+    if(card.rarity==='Mythic') Object.keys(rolled).forEach(k=>rolled[k]=Math.min(200,rolled[k]+45));
+    const mergedStats = { ...rolled, ...baseStats };
     const collectionCard = {
         id: card.id, name: card.name, rarity: card.rarity,
         rarityClass: 'rarity-' + card.rarity.toLowerCase(),
         category: card.category, story: card.story,
         imgUrl: imgUrl, image: card.image, prompt: card.prompt, _seed: seed,
-        stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) }
+        stats: mergedStats
     };
-    if(card.rarity==='Epic') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+15));
-    if(card.rarity==='Legendary') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+30));
-    if(card.rarity==='Mythic') Object.keys(collectionCard.stats).forEach(k=>collectionCard.stats[k]=Math.min(100,collectionCard.stats[k]+45));
     state.collection.push(collectionCard);
     const catLabel = card.category === 'italian' ? '🇮🇹 ITALIAN BRAINROT' : '🧠 CLASSIC BRAINROT';
     document.getElementById('rewardBadge').textContent = `🎉 ${catLabel} UNLOCKED 🎉`;
     document.getElementById('rewardTitle').textContent = card.name;
     document.getElementById('rewardDesc').textContent = card.story;
+    document.getElementById('rewardStats').textContent = statsLine(collectionCard);
     document.getElementById('rewardTokens').textContent = `★ ${card.rarity} ★ | Gyűjtemény: ${state.collection.length} kártya`;
     document.getElementById('rewardLoader').style.display = 'block';
     const img = document.getElementById('rewardImg');
@@ -2542,7 +2549,7 @@ function openCrafting() {
     state.collection.forEach((card, idx) => {
         const el = document.createElement('div'); el.className = 'fusion-card';
         const imgSrc = getCardImage(card);
-        el.innerHTML = `<img src="${imgSrc}" alt="${card.name}" loading="lazy"><div class="fc-name">${card.name}</div><div class="fc-cat ${card.category==='italian'?'fc-cat-italian':'fc-cat-classic'}">${card.category==='italian'?'🇮🇹 Italian':'🧠 Classic'}</div>`;
+        el.innerHTML = `<img src="${imgSrc}" alt="${card.name}" loading="lazy"><div class="fc-name">${card.name}</div><div class="fc-cat ${card.category==='italian'?'fc-cat-italian':'fc-cat-classic'}">${card.category==='italian'?'🇮🇹 Italian':'🧠 Classic'}</div><div style="font-size:0.55rem;color:var(--neon-cyan);font-weight:800;margin-top:2px">${statsLine(card)}</div>`;
         el.onclick = () => {
             AudioEngine.play('click');
             const selIdx = fusionSelected.indexOf(idx);
@@ -2596,10 +2603,14 @@ function generateFusion() {
     else if(boosted>=2.5){rarity="Epic";rarityClass="rarity-epic";}
     else if(boosted>=1.5){rarity="Rare";rarityClass="rarity-rare";}
     else{rarity="Common";rarityClass="rarity-common";}
+    const avgStat = (key, def) => Math.round(cards.reduce((s,c)=>s+(c.stats?.[key]||def),0)/n);
     const stats = {
-        rizz: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.rizz||50),0)/n) + 5*n + Math.floor(Math.random()*15)),
-        sigma: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.sigma||50),0)/n) + 5*n + Math.floor(Math.random()*15)),
-        brainrot: Math.min(100, Math.round(cards.reduce((s,c)=>s+(c.stats?.brainrot||50),0)/n) + 5*n + Math.floor(Math.random()*15))
+        rizz: Math.min(100, avgStat('rizz',50) + 5*n + Math.floor(Math.random()*15)),
+        sigma: Math.min(100, avgStat('sigma',50) + 5*n + Math.floor(Math.random()*15)),
+        brainrot: Math.min(100, avgStat('brainrot',50) + 5*n + Math.floor(Math.random()*15)),
+        hp: Math.min(200, avgStat('hp', RARITY_BASE_STATS[rarity].hp) + 5*n + Math.floor(Math.random()*15)),
+        attack: Math.min(60, avgStat('attack', RARITY_BASE_STATS[rarity].attack) + n + Math.floor(Math.random()*5)),
+        defense: Math.min(40, avgStat('defense', RARITY_BASE_STATS[rarity].defense) + n + Math.floor(Math.random()*4)),
     };
     const flavor = fusionFlavors[Math.floor(Math.random()*fusionFlavors.length)];
     console.log('[FUSION] imgUrl:', imgUrl);
@@ -2613,7 +2624,7 @@ function generateFusion() {
         crImg.onerror=()=>{document.getElementById('crLoader').textContent='❌';};
         document.getElementById('crName').textContent = name;
         document.getElementById('crRarity').innerHTML = `<span class="${rarityClass}">★ ${rarity} ★</span>`;
-        document.getElementById('crStats').innerHTML = `<span class="cr-stat">😎 Rizz: ${stats.rizz}</span><span class="cr-stat">🗿 Sigma: ${stats.sigma}</span><span class="cr-stat">🧠 Brainrot: ${stats.brainrot}</span>`;
+        document.getElementById('crStats').innerHTML = `<span class="cr-stat">❤️ HP: ${stats.hp}</span><span class="cr-stat">⚔️ ATK: ${stats.attack}</span><span class="cr-stat">🛡️ DEF: ${stats.defense}</span><br><span class="cr-stat">😎 Rizz: ${stats.rizz}</span><span class="cr-stat">🗿 Sigma: ${stats.sigma}</span><span class="cr-stat">🧠 Brainrot: ${stats.brainrot}</span>`;
         document.getElementById('crFlavor').textContent = `"${flavor}"`;
         document.getElementById('craftResult').classList.add('show');
         const storyParts = cards.map(c => (c.story||'').split('.')[0]).filter(s=>s.length>5);
@@ -2827,14 +2838,18 @@ function renderCreatorResult(container) {
     else if (rarityRoll < 0.65) { rarity = 'Rare'; rarityClass = 'rarity-rare'; }
     else { rarity = 'Common'; rarityClass = 'rarity-common'; }
 
+    const base = RARITY_BASE_STATS[rarity];
     const stats = {
         rizz: 20 + Math.floor(Math.random() * 81),
         sigma: 20 + Math.floor(Math.random() * 81),
         brainrot: 20 + Math.floor(Math.random() * 81),
+        hp: base.hp + Math.floor(Math.random() * 16) - 5,
+        attack: base.attack + Math.floor(Math.random() * 7) - 2,
+        defense: base.defense + Math.floor(Math.random() * 5) - 1,
     };
-    if (rarity === 'Epic') Object.keys(stats).forEach(k => stats[k] = Math.min(100, stats[k] + 15));
-    if (rarity === 'Legendary') Object.keys(stats).forEach(k => stats[k] = Math.min(100, stats[k] + 25));
-    if (rarity === 'Mythic') Object.keys(stats).forEach(k => stats[k] = Math.min(100, stats[k] + 40));
+    if (rarity === 'Epic') ['rizz','sigma','brainrot'].forEach(k => stats[k] = Math.min(100, stats[k] + 15));
+    if (rarity === 'Legendary') ['rizz','sigma','brainrot'].forEach(k => stats[k] = Math.min(100, stats[k] + 25));
+    if (rarity === 'Mythic') ['rizz','sigma','brainrot'].forEach(k => stats[k] = Math.min(100, stats[k] + 40));
 
     creatorGeneratedCard = {
         id: 'created_' + Date.now(),
@@ -2861,6 +2876,11 @@ function renderCreatorResult(container) {
                 </div>
                 <div class="cr-name">${generatedName}</div>
                 <div class="cr-rarity"><span class="${rarityClass}">★ ${rarity} ★</span></div>
+                <div class="cr-stats">
+                    <span class="cr-stat">❤️ HP: ${stats.hp}</span>
+                    <span class="cr-stat">⚔️ ATK: ${stats.attack}</span>
+                    <span class="cr-stat">🛡️ DEF: ${stats.defense}</span>
+                </div>
                 <div class="cr-stats">
                     <span class="cr-stat">😎 Rizz: ${stats.rizz}</span>
                     <span class="cr-stat">🗿 Sigma: ${stats.sigma}</span>
@@ -2968,19 +2988,43 @@ function closeRankOverlay() {
 
 let battleState = null;
 
+// Deterministic base stats per rarity — used for display when a card has no explicit stats.
+const RARITY_BASE_STATS = {
+    Common:    { hp: 45,  attack: 10, defense: 5  },
+    Rare:      { hp: 65,  attack: 15, defense: 8  },
+    Epic:      { hp: 85,  attack: 20, defense: 12 },
+    Legendary: { hp: 115, attack: 26, defense: 16 },
+    Mythic:    { hp: 150, attack: 32, defense: 20 },
+};
+function getDisplayStats(card) {
+    const s = card && card.stats;
+    if (s && (s.hp || s.attack || s.defense)) {
+        const base = RARITY_BASE_STATS[card.rarity] || RARITY_BASE_STATS.Common;
+        return { hp: s.hp || base.hp, attack: s.attack || base.attack, defense: s.defense || base.defense };
+    }
+    return { ...(RARITY_BASE_STATS[card && card.rarity] || RARITY_BASE_STATS.Common) };
+}
+function statsLine(card) {
+    const s = getDisplayStats(card);
+    return `❤️${s.hp} ⚔️${s.attack} 🛡️${s.defense}`;
+}
+
 function cardHP(card) {
     const s = card.stats || {};
-    return (s.hp || Math.round(((s.rizz||50) + (s.sigma||50) + (s.brainrot||50)) / 3)) + 20;
+    if (s.hp) return s.hp + 20;
+    return getDisplayStats(card).hp + 20;
 }
 
 function cardAtk(card) {
     const s = card.stats || {};
-    return s.attack || Math.round(((s.rizz||50) + (s.sigma||50)) / 5);
+    if (s.attack) return s.attack;
+    return getDisplayStats(card).attack;
 }
 
 function cardDef(card) {
     const s = card.stats || {};
-    return s.defense || Math.round(((s.sigma||50) + (s.brainrot||50)) / 6);
+    if (s.defense) return s.defense;
+    return getDisplayStats(card).defense;
 }
 
 function openBattleSelect() {
@@ -2994,9 +3038,7 @@ function openBattleSelect() {
         const isExhausted = card.exhausted && card.exhausted > 0;
         el.className = 'battle-select-card' + (isExhausted ? ' ci-exhausted' : '');
         const img = getCardImage(card);
-        const s = card.stats || {};
-        const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
-        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${isExhausted ? '😴 ' : ''}${card.name}</div><div style="font-size:0.5rem;color:var(--neon-orange);font-weight:700">⚔️ ${power}${isExhausted ? ' (😴'+card.exhausted+')' : ''}</div>`;
+        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${isExhausted ? '😴 ' : ''}${card.name}</div><div style="font-size:0.55rem;color:var(--neon-cyan);font-weight:800">${statsLine(card)}${isExhausted ? ' 😴'+card.exhausted : ''}</div>`;
         if (!isExhausted) {
             el.onclick = () => {
                 AudioEngine.play('click');
@@ -3324,20 +3366,22 @@ function openShop() {
         const el = document.createElement('div');
         el.className = 'battle-select-card';
         const owned = ownedIds.has(card.id);
-        const img = card.image || '';
-        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${owned ? '✅ ' : ''}${card.name}</div>`;
+        const img = getCardImgUrl(card);
+        el.innerHTML = `<img src="${img}" alt="${card.name}" loading="lazy"><div class="bsc-name">${owned ? '✅ ' : ''}${card.name}</div><div style="font-size:0.55rem;color:var(--neon-cyan);font-weight:800">${statsLine(card)}</div><div style="font-size:0.6rem;color:var(--neon-gold);font-weight:700">★ ${card.rarity}</div>`;
         if (owned) el.style.opacity = '0.5';
         el.onclick = () => {
             if (state.talpieres < 20) return;
             AudioEngine.play('reward');
             state.talpieres -= 20;
             const seed = Math.floor(Math.random() * 999999);
+            const baseStats = card.stats || {};
+            const rolled = { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) };
             const collectionCard = {
                 id: card.id, name: card.name, rarity: card.rarity,
                 rarityClass: 'rarity-' + card.rarity.toLowerCase(),
                 category: card.category, story: card.story,
                 imgUrl: card.image, image: card.image, prompt: card.prompt, _seed: seed,
-                stats: { rizz: 10+Math.floor(Math.random()*91), sigma: 10+Math.floor(Math.random()*91), brainrot: 10+Math.floor(Math.random()*91), hp: 20+Math.floor(Math.random()*61), attack: 5+Math.floor(Math.random()*26), defense: 5+Math.floor(Math.random()*21) }
+                stats: { ...rolled, ...baseStats }
             };
             state.collection.push(collectionCard);
             saveState(); renderCollection(); updateTokenDisplay(); checkBadges();
@@ -3811,6 +3855,10 @@ function filterEncyclopedia(filter) {
 }
 function renderEncyclopedia() {
     const grid = document.getElementById('encyclopediaGrid'); grid.innerHTML = '';
+    // Refresh tab counts to match actual card totals.
+    const ta = document.getElementById('tabAll'); if (ta) ta.textContent = `Mind (${allBrainrotCards.length})`;
+    const tc = document.getElementById('tabClassic'); if (tc) tc.textContent = `🧠 Classic (${classicBrainrots.length})`;
+    const ti = document.getElementById('tabItalian'); if (ti) ti.textContent = `🇮🇹 Italian (${italianBrainrots.length})`;
     let cards = allBrainrotCards;
     if (currentEncyFilter === 'classic') cards = classicBrainrots;
     else if (currentEncyFilter === 'italian') cards = italianBrainrots;
@@ -3822,13 +3870,15 @@ function renderEncyclopedia() {
         const isOlder = card.kidRating === 'older';
         const el = document.createElement('div'); el.className = 'ency-card' + (isOlder ? ' older-card' : '');
         el.style.cursor = 'pointer';
+        const imgSrc = getCardImgUrl(card);
         el.innerHTML = `
-            <img src="${card.image||''}" alt="${card.name}" loading="lazy" onerror="this.style.display='none'">
+            <img src="${imgSrc}" alt="${card.name}" loading="lazy" onerror="this.style.display='none'">
             <div class="ency-card-body">
                 <div class="ency-card-name">${isOlder ? '🔒 ' : ''}${card.name}</div>
                 ${isOlder ? '<div style="font-size:0.6rem;color:var(--neon-orange);font-weight:700;margin:2px 0;">⚠️ NAGYOBBAKNAK</div>' : ''}
                 <div class="ency-card-rarity ${rarityClass}">★ ${card.rarity}</div>
                 <div class="ency-card-cat ${catClass}">${catLabel}</div>
+                <div class="ency-card-stats" style="font-size:0.6rem;margin-top:3px;color:var(--neon-cyan);font-weight:800">${statsLine(card)}</div>
             </div>`;
         el.onclick = () => openEncyDetail(card);
         grid.appendChild(el);
@@ -3843,8 +3893,9 @@ function openEncyDetail(card) {
     currentEncyCard = card;
     AudioEngine.play('click');
 
-    document.getElementById('encyDetailImg').src = card.image || '';
+    document.getElementById('encyDetailImg').src = getCardImgUrl(card);
     document.getElementById('encyDetailName').textContent = card.name;
+    document.getElementById('encyDetailStats').textContent = statsLine(card);
 
     const rarityClass = 'rarity-' + card.rarity.toLowerCase();
     document.getElementById('encyDetailRarity').innerHTML = `<span class="${rarityClass}">★ ${card.rarity} ★</span>`;

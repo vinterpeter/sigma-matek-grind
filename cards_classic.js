@@ -518,5 +518,180 @@ const classicBrainrots = [
     prompt: "number 6 and 7 as italian brainrot cartoon characters, six is scared of seven because seven ate nine, funny meme style, colorful brainrot aesthetic",
     story: "Miért fél a 6-os a 7-estől? Mert a 7 megette a 9-est! Ez a Brainrot Birodalom legrégibb és legviccesebb legendája. A 6-os azóta is remegve bújik el ha meglátja a 7-est, a 7-es pedig azóta is éhesen kergeti a számokat. A 8-as próbál békét teremteni, de nincs sok sikere! 🔢",
     kidRating: "safe"
+  },
+  {
+    id: "keyboard_cat", name: "Keyboard Cat", category: "classic", rarity: "Rare",
+    image: "images/keyboard_cat.jpg", prompt: null,
+    story: "Bento, a komoly sárga macska aki egész nap szintetizátoron játszik! Ha valaki kínosan elesik vagy szégyent vall, azonnal rázendít a híres dallamra és mindenki nevet. A Brainrot Birodalom házi zenésze! 🎹🐱",
+    kidRating: "safe",
+    stats: { hp: 62, attack: 14, defense: 9, rizz: 55, sigma: 48, brainrot: 58 }
+  },
+  {
+    id: "bad_luck_brian", name: "Bad Luck Brian", category: "classic", rarity: "Common",
+    image: null, prompt: "a nerdy boy with braces, glasses and a yellow plaid sweater, awkward school photo, meme style, cartoon illustration, colorful brainrot aesthetic",
+    story: "Egy szemüveges, fogszabályzós kisfiú aki bármibe belekezd, mindig pórul jár! Ha reggelit készít, felrobban a kenyérpirító. Ha matek dolgozatot ír, leejti a tollát. De a mosolyát sosem veszíti el! 😬",
+    kidRating: "safe",
+    stats: { hp: 42, attack: 9, defense: 4, rizz: 35, sigma: 30, brainrot: 45 }
+  },
+  {
+    id: "philosoraptor", name: "Philosoraptor", category: "classic", rarity: "Epic",
+    image: null, prompt: "a velociraptor dinosaur thinking deep philosophical thoughts with chin resting on hand, dramatic green background, meme style, cartoon",
+    story: "Egy velociraptor aki a legnagyobb filozófiai kérdéseken töpreng! Ha álmodsz egy álmot amiben álmodsz, az dupla álom-e? Ha eszel egy tudóst, okosabb leszel tőle? A Brainrot Birodalom legbölcsebb dinoszaurusza! 🦖💭",
+    kidRating: "safe",
+    stats: { hp: 84, attack: 19, defense: 13, rizz: 70, sigma: 72, brainrot: 80 }
+  },
+  {
+    id: "grus_plan", name: "Gru Terve", category: "classic", rarity: "Epic",
+    image: null, prompt: "cartoon bald villain in black coat pointing at whiteboard with plan diagram, confused expression at step 4, despicable me style, meme",
+    story: "Gru a zseniális tudós aki büszkén mutatja a tervét a nagy táblán! Első lépés, második lépés, harmadik lépés... várjunk csak, a negyedik lépés ugyanaz mint a második?! Mi történik itt?! 📋🤔",
+    kidRating: "safe",
+    stats: { hp: 82, attack: 20, defense: 12, rizz: 68, sigma: 65, brainrot: 72 }
+  },
+  {
+    id: "arthur_fist", name: "Arthur Ököl", category: "classic", rarity: "Rare",
+    image: null, prompt: "cartoon aardvark wearing yellow sweater with clenched fist on a wooden table, angry expression, pbs kids style, meme",
+    story: "Arthur a kedves hangyászmedve aki sárga pulcsit és szemüveget visel. Ha igazságtalanság történik, összeszorítja az öklét a levegőben! A legcsöndesebb harag a birodalomban! 👊😤",
+    kidRating: "safe",
+    stats: { hp: 64, attack: 15, defense: 8, rizz: 50, sigma: 55, brainrot: 52 }
+  },
+  {
+    id: "roll_safe", name: "Roll Safe", category: "classic", rarity: "Rare",
+    image: null, prompt: "smart guy tapping his temple with index finger, clever smirk, colorful background, meme style, cartoon",
+    story: "Egy ravasz fiú aki a halántékát kopogtatja és mindent logikával old meg! 'Nem bukhatsz el a matek dolgozaton, ha sose írod meg!' - mondja bölcsen. A Brainrot Birodalom legfurább tanácsadója! 🧠👉",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 13, defense: 9, rizz: 60, sigma: 55, brainrot: 50 }
+  },
+  {
+    id: "two_buttons", name: "Két Gomb", category: "classic", rarity: "Rare",
+    image: null, prompt: "sweating cartoon man in white suit hesitating between two red buttons, difficult choice, meme style, colorful",
+    story: "Egy izzadt férfi aki két piros gomb között hezitál és nem tud dönteni! Matek tanulás VAGY videojáték? Alma VAGY csoki? Minden választás kínszenvedés! 😰🔴🔴",
+    kidRating: "safe",
+    stats: { hp: 58, attack: 12, defense: 8, rizz: 45, sigma: 48, brainrot: 60 }
+  },
+  {
+    id: "kermit_tea", name: "Kermit Teázik", category: "classic", rarity: "Rare",
+    image: null, prompt: "green frog puppet sipping tea from a lipton cup, that's none of my business vibe, meme style, cartoon",
+    story: "Egy zöld béka aki lassan szürcsöli a teáját és mindent figyel ami körülötte történik. 'De hát ez nem az én dolgom!' - mondja csendesen és tovább szürcsöl. 🐸🍵",
+    kidRating: "safe",
+    stats: { hp: 64, attack: 12, defense: 11, rizz: 58, sigma: 62, brainrot: 50 }
+  },
+  {
+    id: "change_my_mind", name: "Change My Mind", category: "classic", rarity: "Rare",
+    image: null, prompt: "bearded man sitting at folding table on campus with sign 'change my mind', calm confident expression, meme style",
+    story: "Egy bajuszos férfi aki asztalnál ül egy nagy táblával: 'A pizza a legjobb étel — győzz meg az ellenkezőjéről!' Mindig készen áll a vitára, és sosem adja fel! 📝🍕",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 14, defense: 8, rizz: 62, sigma: 55, brainrot: 50 }
+  },
+  {
+    id: "spiderman_pointing", name: "Spiderman Mutogat", category: "classic", rarity: "Epic",
+    image: null, prompt: "two identical spider-man characters pointing at each other in confusion, classic 1967 cartoon style, meme",
+    story: "Két pókember akik egymásra mutogatnak zavartan! Melyik az igazi? Melyik a hamis? A Brainrot Birodalom legnagyobb identitásválsága! 🕷️👉",
+    kidRating: "safe",
+    stats: { hp: 85, attack: 21, defense: 12, rizz: 72, sigma: 68, brainrot: 75 }
+  },
+  {
+    id: "me_gusta", name: "Me Gusta", category: "classic", rarity: "Common",
+    image: null, prompt: "creepy cartoon rage comic face with big nose and wide grin saying 'me gusta', meme style, simple drawing",
+    story: "Egy nagy orrú rajzfigura akinek mindig tetszik minden! Ha lát egy jó falatot: Me Gusta! Ha megold egy feladatot: Me Gusta! A világ legelégedettebb arca! 😋",
+    kidRating: "safe",
+    stats: { hp: 42, attack: 10, defense: 4, rizz: 40, sigma: 30, brainrot: 48 }
+  },
+  {
+    id: "y_u_no", name: "Y U NO", category: "classic", rarity: "Common",
+    image: null, prompt: "rage comic cartoon character with angry arms outstretched shouting Y U NO, simple line drawing, meme style",
+    story: "Egy dühös rajzfigura aki a karját kitárja és azt kiáltja: 'Y U NO tanulni?!' Mindig valamit követel és soha nem tud megnyugodni! 😤",
+    kidRating: "safe",
+    stats: { hp: 44, attack: 11, defense: 5, rizz: 35, sigma: 32, brainrot: 50 }
+  },
+  {
+    id: "lolcat", name: "LOLcat", category: "classic", rarity: "Common",
+    image: null, prompt: "white fluffy cat demanding cheeseburger with text 'I CAN HAZ CHEEZBURGER?', classic 2007 internet meme style",
+    story: "Egy fehér bolyhos macska aki sajtburgert akar és hibás helyesírással kiált: 'I CAN HAZ CHEEZBURGER?' Mindig éhes és mindig vicces! 🐱🍔",
+    kidRating: "safe",
+    stats: { hp: 45, attack: 10, defense: 5, rizz: 50, sigma: 35, brainrot: 55 }
+  },
+  {
+    id: "socially_awkward_penguin", name: "Kínos Pingvin", category: "classic", rarity: "Rare",
+    image: null, prompt: "blue cartoon penguin looking awkwardly to the side, nervous expression, blue background, meme style",
+    story: "Egy kék pingvin aki mindig zavarba kerül! Ha valaki köszön neki, csak néz és nem tud válaszolni. De a szíve hatalmas és mindenkit szeret! 🐧😳",
+    kidRating: "safe",
+    stats: { hp: 58, attack: 11, defense: 10, rizz: 30, sigma: 35, brainrot: 55 }
+  },
+  {
+    id: "ancient_aliens", name: "Földönkívüli Tudós", category: "classic", rarity: "Rare",
+    image: null, prompt: "crazy haired scientist with wide eyes pointing upwards, history channel style, meme",
+    story: "Egy borzas hajú tudós akinek minden kérdésre ugyanaz a válasza: 'FÖLDÖNKÍVÜLIEK!' Hogyan készült a piramis? Földönkívüliek! Ki találta fel a matekot? Földönkívüliek! 👽",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 14, defense: 8, rizz: 55, sigma: 60, brainrot: 70 }
+  },
+  {
+    id: "epic_handshake", name: "Epic Handshake", category: "classic", rarity: "Epic",
+    image: null, prompt: "two muscular arms doing an epic handshake silhouette against explosion background, predator meme style",
+    story: "Két izmos hős akik összekulcsolják a kezüket és csillogó izmaikkal lepecsételik a barátságot! Az igazi csapatmunka szimbóluma a Brainrot Birodalomban! 🤝💪",
+    kidRating: "safe",
+    stats: { hp: 90, attack: 22, defense: 14, rizz: 75, sigma: 78, brainrot: 65 }
+  },
+  {
+    id: "polandball", name: "Polandball", category: "classic", rarity: "Common",
+    image: null, prompt: "simple red and white cartoon ball character with small eyes, polandball comic style, crayon drawing",
+    story: "Egy piros-fehér gömbfigura aki rosszul beszél angolul de nagyon cuki! 'Poland cannot into space!' - mondja szomorúan. A legkedvesebb gömb a világon! ⚪🔴",
+    kidRating: "safe",
+    stats: { hp: 40, attack: 9, defense: 6, rizz: 38, sigma: 35, brainrot: 45 }
+  },
+  {
+    id: "good_guy_greg", name: "Good Guy Greg", category: "classic", rarity: "Rare",
+    image: null, prompt: "smiling young man with curly hair and joint, friendly warm expression, green background, meme style",
+    story: "Egy mosolygós fiú aki mindig jót tesz! Kölcsönadja a ceruzáját, megosztja az uzsonnáját, segít a házi feladatban! Ő a tökéletes osztálytárs! 😇",
+    kidRating: "safe",
+    stats: { hp: 68, attack: 13, defense: 11, rizz: 75, sigma: 60, brainrot: 50 }
+  },
+  {
+    id: "moai_statue", name: "Moai Szobor", category: "classic", rarity: "Legendary",
+    image: null, prompt: "easter island moai stone head statue with deadpan expression, blue sky background, 3d render, meme style",
+    story: "Egy titokzatos húsvét-szigeti kőszobor aki csendben figyel mindenkit! 🗿 Ő a Brainrot Birodalom legrégebbi emléke. Senki sem tudja mire gondol, de a szeme mindent lát!",
+    kidRating: "safe",
+    stats: { hp: 115, attack: 24, defense: 18, rizz: 88, sigma: 90, brainrot: 85 }
+  },
+  {
+    id: "dat_boi", name: "Here Come Dat Boi", category: "classic", rarity: "Rare",
+    image: null, prompt: "green cartoon frog riding a unicycle, 3d render, simple background, meme style",
+    story: "Egy béka aki kis egykerekű biciklin gurul! 'Here come dat boi!' - kiáltja mindenki ha meglátják. Olyan vicces ahogy gurul, hogy mindenki nevet! 🐸🚲",
+    kidRating: "safe",
+    stats: { hp: 56, attack: 14, defense: 7, rizz: 60, sigma: 45, brainrot: 62 }
+  },
+  {
+    id: "deal_with_it", name: "Deal With It", category: "classic", rarity: "Rare",
+    image: null, prompt: "cool character slowly putting on pixelated sunglasses, confident smirk, deal with it text, meme style",
+    story: "Egy menő arc aki lassan felteszi a pixeles napszemüveget és azt mondja: 'Deal with it!' Semmi sem tudja megrendíteni a stílusát! 😎",
+    kidRating: "safe",
+    stats: { hp: 62, attack: 16, defense: 7, rizz: 78, sigma: 60, brainrot: 55 }
+  },
+  {
+    id: "yes_chad", name: "Yes Chad", category: "classic", rarity: "Epic",
+    image: null, prompt: "blonde bearded chad face nodding confidently saying yes, nordic style, meme illustration",
+    story: "Egy hatalmas szakállú, magabiztos arc aki minden kérdésre egyszerűen azt mondja: 'Igen.' Nem vitatkozik, nem magyarázkodik — csak bólint és továbbmegy! 💪",
+    kidRating: "safe",
+    stats: { hp: 88, attack: 23, defense: 13, rizz: 80, sigma: 85, brainrot: 55 }
+  },
+  {
+    id: "chocolate_rain", name: "Chocolate Rain", category: "classic", rarity: "Rare",
+    image: null, prompt: "cartoon singer with dreadlocks in front of microphone, chocolate raindrops falling, stage lights, meme style",
+    story: "Egy különleges énekes aki mély hangon énekli: 'Chocolate rain...' A Brainrot Birodalom himnusza lett ez a dal, és mindenki együtt énekli vele! 🎤🍫",
+    kidRating: "safe",
+    stats: { hp: 60, attack: 13, defense: 9, rizz: 55, sigma: 50, brainrot: 65 }
+  },
+  {
+    id: "sigma_grindset", name: "Sigma Grindset", category: "classic", rarity: "Epic",
+    image: null, prompt: "muscular sigma male waking up at 4am doing pushups, cold shower, reading books montage, meme style",
+    story: "Egy sigma férfi aki hajnalban 4-kor kel, edzést csinál, hideg vízben fürdik és könyveket olvas! A Brainrot Birodalom legmotiváltabb lakója, aki soha nem pihen! 💪📚",
+    kidRating: "safe",
+    stats: { hp: 86, attack: 22, defense: 12, rizz: 85, sigma: 95, brainrot: 60 }
+  },
+  {
+    id: "jojo_pose", name: "JoJo Póz", category: "classic", rarity: "Legendary",
+    image: null, prompt: "anime hero in dramatic jojos bizarre adventure pose with sparkles and menacing text, colorful background, meme style",
+    story: "Egy anime hős aki drámai pózban áll csillagos háttérrel! Olyan menő és olyan komoly, hogy ha meglátod, te is azonnal pózolni akarsz! ⭐🌟",
+    kidRating: "safe",
+    stats: { hp: 108, attack: 25, defense: 16, rizz: 90, sigma: 88, brainrot: 82 }
   }
 ];
