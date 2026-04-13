@@ -362,7 +362,7 @@ const classicBrainrots = [
   },
   {
     id: "change_my_mind", name: "Change My Mind", category: "classic", rarity: "Rare",
-    image: null, prompt: "bearded man sitting at folding table on campus with sign 'change my mind', calm confident expression, meme style",
+    image: "images/change_my_mind.jpg", prompt: "bearded man sitting at folding table on campus with sign 'change my mind', calm confident expression, meme style",
     story: "A Change My Mind mém Steven Crowder amerikai konzervatív komikus 2018 februári 'Louder With Crowder' YouTube videójából származik. Crowder egy egyetemi kampuszon asztal mögött ül, rajta ellentmondásos állítás és 'Change my mind' felirat. 📝",
     kidRating: "safe",
     stats: { hp: 60, attack: 14, defense: 8, rizz: 62, sigma: 55, brainrot: 50 }

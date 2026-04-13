@@ -441,7 +441,7 @@ const italianBrainrots = [
   },
   {
     id: "focaccio_fantasma", name: "Focaccio Fantasma", category: "italian", rarity: "Rare",
-    image: null, prompt: "a ghost made of focaccia bread with rosemary and salt, floating in a dark kitchen, italian brainrot spooky style",
+    image: "images/focaccio_fantasma.jpg", prompt: "a ghost made of focaccia bread with rosemary and salt, floating in a dark kitchen, italian brainrot spooky style",
     story: "Egy szellem aki focaccia kenyérből van és lebeg! Sós rozmaringszaga van és a konyhában kísért éjszakánként — ahova megy, minden pék felriad! 👻🍞",
     kidRating: "safe",
     stats: { hp: 58, attack: 14, defense: 8, rizz: 52, sigma: 58, brainrot: 65 }
@@ -476,7 +476,7 @@ const italianBrainrots = [
   },
   {
     id: "super_mario", name: "Super Mario", category: "italian", rarity: "Legendary",
-    image: null, prompt: "italian plumber mario from nintendo wearing red cap and overalls, jumping pose with gloved fist, classic video game art",
+    image: "images/super_mario.jpg", prompt: "italian plumber mario from nintendo wearing red cap and overalls, jumping pose with gloved fist, classic video game art",
     story: "Super Mario a Nintendo 1981-es 'Donkey Kong' arcade játékának 'Jumpman' karaktereként debütált, Shigeru Miyamoto tervezésében. Az 1985-ös 'Super Mario Bros.' tette az olasz-amerikai vízvezetékszerelőt a világ legismertebb videojáték-karakterévé. Mario a Mushroom Kingdom hőse, aki Bowsertől menti meg Peach hercegnőt. 🍄🔨",
     kidRating: "safe",
     stats: { hp: 118, attack: 26, defense: 17, rizz: 85, sigma: 88, brainrot: 82 }
@@ -497,7 +497,7 @@ const italianBrainrots = [
   },
   {
     id: "yoshi_mario", name: "Yoshi", category: "italian", rarity: "Epic",
-    image: null, prompt: "green dinosaur yoshi from mario games with white belly and red saddle, friendly smile, nintendo style",
+    image: "images/yoshi_mario.jpg", prompt: "green dinosaur yoshi from mario games with white belly and red saddle, friendly smile, nintendo style",
     story: "Yoshi, a zöld dinoszaurusz, 1990-ben debütált a 'Super Mario World' játékban SNES-en. Mario barátja és hátasa, aki hosszú nyelvével ellenségeket nyel le és tojásokat tojik. 1995-től saját platformer-sorozata van, a 'Yoshi's Island'. 🦖",
     kidRating: "safe",
     stats: { hp: 86, attack: 19, defense: 14, rizz: 72, sigma: 68, brainrot: 75 }
@@ -532,7 +532,7 @@ const italianBrainrots = [
   },
   {
     id: "pinocchio_collodi", name: "Pinocchio", category: "italian", rarity: "Legendary",
-    image: null, prompt: "wooden puppet pinocchio with long nose, overalls and hat, carved by geppetto, classic italian fairy tale illustration",
+    image: "images/pinocchio_collodi.jpg", prompt: "wooden puppet pinocchio with long nose, overalls and hat, carved by geppetto, classic italian fairy tale illustration",
     story: "Pinocchio a firenzei író Carlo Collodi 1883-as 'Le avventure di Pinocchio' (Pinocchio kalandjai) meseregényének főszereplője. A fa-bábu, aki Geppetto asztalos keze alatt ébred életre, és akinek az orra megnyúlik, ha hazudik. A Disney 1940-es animációs filmje világsztárrá tette, de a Collodi eredeti története jóval sötétebb volt. 🪵👃",
     kidRating: "safe",
     stats: { hp: 108, attack: 22, defense: 16, rizz: 72, sigma: 80, brainrot: 82 }
@@ -553,7 +553,7 @@ const italianBrainrots = [
   },
   {
     id: "michelangelo_buonarroti", name: "Michelangelo", category: "italian", rarity: "Legendary",
-    image: null, prompt: "michelangelo buonarroti sculptor painter renaissance italian with beard and chisel, sistine chapel background",
+    image: "images/michelangelo_buonarroti.jpg", prompt: "michelangelo buonarroti sculptor painter renaissance italian with beard and chisel, sistine chapel background",
     story: "Michelangelo Buonarroti (1475–1564) firenzei szobrász, festő és építész — Leonardo da Vinci kortársa. A Dávid-szobor (1504), a vatikáni Sixtus-kápolna mennyezete (1508–1512) és az 'Utolsó ítélet' (1541) mind az ő munkái. Azt mondják, 4 évig a hátán fekve festette a kápolna mennyezetét. 🗿",
     kidRating: "safe",
     stats: { hp: 110, attack: 23, defense: 18, rizz: 82, sigma: 88, brainrot: 80 }
@@ -567,7 +567,7 @@ const italianBrainrots = [
   },
   {
     id: "garfield_cat", name: "Garfield", category: "italian", rarity: "Epic",
-    image: null, prompt: "garfield the orange fat cat eating lasagna, jim davis comic style",
+    image: "images/garfield_cat.jpg", prompt: "garfield the orange fat cat eating lasagna, jim davis comic style",
     story: "Garfield Jim Davis amerikai képregényrajzoló 1978. június 19-i 'Garfield' képregénysorozatának főszereplője. A narancssárga, lasagna-imádó, hétfőket gyűlölő, Odie kutyát rugdaló cica ma is a világ egyik legismertebb képregény-macskája. Olasz kapcsolat: a kedvenc étele a lasagna! 🍝🐱",
     kidRating: "safe",
     stats: { hp: 84, attack: 18, defense: 13, rizz: 75, sigma: 60, brainrot: 88 }
