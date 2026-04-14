@@ -3379,8 +3379,18 @@ function loadAllPlayers() {
     c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim)">Játékosok betöltése...</div>';
     // Always include local player with full data
     const localPlayer = { uid: 'local', ...JSON.parse(JSON.stringify(state)), badges: Array.from(state.badges), _local: true };
-    if (db) {
+    if (db && fbReady) {
+        let done = false;
+        const fallback = setTimeout(() => {
+            if (done) return;
+            done = true;
+            adminPlayers = [localPlayer];
+            renderAdminPlayerList();
+        }, 6000);
         db.collection('users').get().then(async snap => {
+            if (done) return;
+            done = true;
+            clearTimeout(fallback);
             adminPlayers = [localPlayer];
             for (const doc of snap.docs) {
                 const p = { uid: doc.id, ...doc.data() };
@@ -3400,9 +3410,19 @@ function loadAllPlayers() {
             }
             renderAdminPlayerList();
         }).catch(() => {
+            if (done) return;
+            done = true;
+            clearTimeout(fallback);
             adminPlayers = [localPlayer];
             renderAdminPlayerList();
         });
+    } else if (db && !fbReady) {
+        // Auth még folyamatban, várunk rá
+        c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-dim)">Firebase bejelentkezés...</div>';
+        const waitAuth = setInterval(() => {
+            if (fbReady) { clearInterval(waitAuth); loadAllPlayers(); }
+        }, 300);
+        setTimeout(() => { clearInterval(waitAuth); adminPlayers = [localPlayer]; renderAdminPlayerList(); }, 8000);
     } else {
         adminPlayers = [localPlayer];
         renderAdminPlayerList();
