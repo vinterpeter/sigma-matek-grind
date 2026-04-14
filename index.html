@@ -3433,7 +3433,7 @@ function renderAdminPlayerList() {
             const pct = p.total > 0 ? Math.round((p.correct||0) / p.total * 100) : 0;
             const pctCol = pct >= 80 ? 'var(--neon-lime)' : pct >= 50 ? 'var(--neon-gold)' : 'var(--neon-mag)';
             return `<tr style="cursor:pointer" onclick="selectAdminPlayer('${p.uid}')">
-                <td>${p._local ? '📱 Helyi' : '☁️ ' + p.uid.slice(0,8)}</td>
+                <td>${adminPlayerLabel(p)}</td>
                 <td>${p.total||0}</td>
                 <td style="color:${pctCol}">${pct}%</td>
                 <td>${p.talpieres||0}</td>
@@ -3459,9 +3459,138 @@ function adminBack() {
     renderAdminPlayerList();
 }
 
+function adminGiveTokens() {
+    const amount = parseInt(document.getElementById('adminTokenInput').value) || 0;
+    const msg = document.getElementById('adminTokenMsg');
+    if (amount <= 0) { msg.textContent = 'Adj meg pozitív számot!'; msg.style.color = 'var(--neon-mag)'; return; }
+    const uid = adminSelectedUid;
+    if (!uid || uid === 'local') {
+        // Local player
+        state.talpieres = (state.talpieres || 0) + amount;
+        updateTokenDisplay();
+        saveState();
+        const p = getAdminPlayerData();
+        p.talpieres = state.talpieres;
+        const disp = document.getElementById('adminTallierDisplay');
+        if (disp) disp.textContent = state.talpieres;
+        msg.textContent = `+${amount} smaragd adva! (most: ${state.talpieres})`;
+        msg.style.color = 'var(--neon-lime)';
+        return;
+    }
+    if (!db) { msg.textContent = 'Firebase nem elérhető!'; msg.style.color = 'var(--neon-mag)'; return; }
+    msg.textContent = 'Mentés...'; msg.style.color = 'var(--text-dim)';
+    db.collection('users').doc(uid).get().then(doc => {
+        const current = doc.exists ? (doc.data().talpieres || 0) : 0;
+        const newVal = current + amount;
+        return db.collection('users').doc(uid).update({ talpieres: newVal }).then(() => {
+            const p = adminPlayers.find(x => x.uid === uid);
+            if (p) p.talpieres = newVal;
+            const disp = document.getElementById('adminTallierDisplay');
+            if (disp) disp.textContent = newVal;
+            msg.textContent = `+${amount} smaragd adva! (most: ${newVal})`;
+            msg.style.color = 'var(--neon-lime)';
+        });
+    }).catch(e => {
+        msg.textContent = 'Hiba: ' + e.message;
+        msg.style.color = 'var(--neon-mag)';
+    });
+}
+
+function adminShowSourceCards(sourceUid) {
+    const container = document.getElementById('adminSourceCards');
+    if (!container) return;
+    if (!sourceUid) { container.innerHTML = ''; return; }
+    const src = sourceUid === 'local' ? { ...state, collection: state.collection } : adminPlayers.find(x => x.uid === sourceUid);
+    const cards = (src && src.collection) || [];
+    if (cards.length === 0) { container.innerHTML = '<div style="color:var(--text-dim);font-size:0.8rem">Ennek a játékosnak nincs kártyája.</div>'; return; }
+    let html = `<div style="margin-bottom:6px;font-size:0.75rem;color:var(--text-dim)">${cards.length} kártya — pipáld ki amiket át szeretnél adni:</div>`;
+    html += `<label style="display:block;font-size:0.75rem;color:var(--neon-cyan);cursor:pointer;margin-bottom:4px"><input type="checkbox" id="adminSelectAll" onchange="document.querySelectorAll('.admin-card-cb').forEach(cb=>cb.checked=this.checked)"> Összes kijelölése</label>`;
+    cards.forEach((card, i) => {
+        const s = card.stats || {};
+        const power = Math.round(((s.rizz||0)+(s.sigma||0)+(s.brainrot||0))/3);
+        html += `<label style="display:flex;align-items:center;gap:6px;padding:3px 4px;border-radius:6px;cursor:pointer;font-size:0.78rem" class="admin-card-row">
+            <input type="checkbox" class="admin-card-cb" data-idx="${i}" data-source="${sourceUid}" style="flex-shrink:0">
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${card.name||'?'}</span>
+            <span class="${card.rarityClass||''}" style="font-size:0.7rem;flex-shrink:0">${card.rarity||'?'}</span>
+            <span style="color:var(--text-dim);font-size:0.7rem;flex-shrink:0">⚔️${power}</span>
+        </label>`;
+    });
+    container.innerHTML = html;
+}
+
+function adminDoTransfer() {
+    const msg = document.getElementById('adminTransferMsg');
+    const checked = Array.from(document.querySelectorAll('.admin-card-cb:checked'));
+    if (checked.length === 0) { msg.textContent = 'Jelölj ki legalább egy kártyát!'; msg.style.color = 'var(--neon-mag)'; return; }
+    const sourceUid = checked[0].dataset.source;
+    const src = sourceUid === 'local' ? { collection: state.collection } : adminPlayers.find(x => x.uid === sourceUid);
+    const srcCards = (src && src.collection) || [];
+    const selectedIdxs = checked.map(cb => parseInt(cb.dataset.idx));
+    const cardsToAdd = selectedIdxs.map(i => srcCards[i]).filter(Boolean);
+    const targetUid = adminSelectedUid;
+    msg.textContent = 'Mentés...'; msg.style.color = 'var(--text-dim)';
+
+    const safeCard = c => ({ id:c.id||'', name:c.name||'', rarity:c.rarity||'', rarityClass:c.rarityClass||'', category:c.category||'', stats:c.stats||{}, exhausted:c.exhausted||0, image:c.image||c.imgUrl||'', story:c.story||'', prompt:c.prompt||'' });
+
+    if (!targetUid || targetUid === 'local') {
+        cardsToAdd.forEach(card => state.collection.push({ ...card, imgUrl: card.image||card.imgUrl||'' }));
+        saveState();
+        const tp = adminPlayers.find(x => x.uid === 'local') || state;
+        if (tp !== state) tp.collection = state.collection;
+        msg.textContent = `${cardsToAdd.length} kártya átadva!`;
+        msg.style.color = 'var(--neon-lime)';
+        return;
+    }
+    if (!db) { msg.textContent = 'Firebase nem elérhető!'; msg.style.color = 'var(--neon-mag)'; return; }
+    db.collection('users').doc(targetUid).collection('data').doc('collection').get().then(doc => {
+        const existing = doc.exists ? (doc.data().cards || []) : [];
+        const merged = [...existing, ...cardsToAdd.map(safeCard)];
+        return db.collection('users').doc(targetUid).collection('data').doc('collection').set({ cards: merged }).then(() => {
+            const tp = adminPlayers.find(x => x.uid === targetUid);
+            if (tp) tp.collection = merged;
+            msg.textContent = `${cardsToAdd.length} kártya átadva! (összesen: ${merged.length})`;
+            msg.style.color = 'var(--neon-lime)';
+        });
+    }).catch(e => {
+        msg.textContent = 'Hiba: ' + e.message;
+        msg.style.color = 'var(--neon-mag)';
+    });
+}
+
 function getAdminPlayerData() {
     if (!adminSelectedUid || adminSelectedUid === 'local') return state;
     return adminPlayers.find(p => p.uid === adminSelectedUid) || state;
+}
+
+function adminPlayerLabel(p) {
+    if (p._local) return '📱 ' + (p.displayName || 'Helyi');
+    return (p.displayName ? '👤 ' + p.displayName : '☁️ ' + p.uid.slice(0,8));
+}
+
+function adminSaveName() {
+    const input = document.getElementById('adminNameInput');
+    const msg = document.getElementById('adminNameMsg');
+    const name = (input.value || '').trim();
+    if (!name) { msg.textContent = 'Írj be egy nevet!'; msg.style.color = 'var(--neon-mag)'; return; }
+    const uid = adminSelectedUid;
+    if (!uid || uid === 'local') {
+        state.displayName = name;
+        saveState();
+        const lp = adminPlayers.find(x => x._local);
+        if (lp) lp.displayName = name;
+        msg.textContent = 'Mentve!'; msg.style.color = 'var(--neon-lime)';
+        return;
+    }
+    if (!db) { msg.textContent = 'Firebase nem elérhető!'; msg.style.color = 'var(--neon-mag)'; return; }
+    msg.textContent = 'Mentés...'; msg.style.color = 'var(--text-dim)';
+    db.collection('users').doc(uid).update({ displayName: name }).then(() => {
+        const p = adminPlayers.find(x => x.uid === uid);
+        if (p) p.displayName = name;
+        msg.textContent = 'Mentve!'; msg.style.color = 'var(--neon-lime)';
+    }).catch(e => {
+        msg.textContent = 'Hiba: ' + e.message;
+        msg.style.color = 'var(--neon-mag)';
+    });
 }
 
 function showAdminTab(tab) {
@@ -3476,7 +3605,7 @@ function showAdminTab(tab) {
     const rank = getMilitaryRank.call ? (function(){ const t=p.trophies||0; let r=militaryRanks[0]; for(const x of militaryRanks){if(t>=x.min)r=x;} return r; })() : militaryRanks[0];
 
     const backBtn = `<button class="admin-tab" onclick="adminBack()" style="margin-bottom:8px">← Vissza a listához</button>
-        <span style="color:var(--neon-gold);font-size:0.85rem;font-weight:700;margin-left:8px">${rank.icon} ${rank.name} | 🏆 ${p.trophies||0} | ${p._local?'📱 Helyi':'☁️ '+adminSelectedUid.slice(0,8)}</span><br><br>`;
+        <span style="color:var(--neon-gold);font-size:0.85rem;font-weight:700;margin-left:8px">${rank.icon} ${rank.name} | 🏆 ${p.trophies||0} | ${adminPlayerLabel(p)}</span><br><br>`;
 
     if (tab === 'summary') {
         const answers = log.filter(e => e.evType === 'answer');
@@ -3509,9 +3638,25 @@ function showAdminTab(tab) {
                 <div class="admin-stat-card"><div class="label">Fúziók</div><div class="value">${fusions}</div></div>
                 <div class="admin-stat-card"><div class="label">Alkotások</div><div class="value">${creations}</div></div>
                 <div class="admin-stat-card"><div class="label">Vásárlások</div><div class="value">${shops}</div></div>
-                <div class="admin-stat-card"><div class="label">Tallér</div><div class="value">${p.talpieres||0}</div></div>
+                <div class="admin-stat-card"><div class="label">Tallér</div><div class="value" id="adminTallierDisplay">${p.talpieres||0}</div></div>
                 <div class="admin-stat-card"><div class="label">Gyűjtemény</div><div class="value">${(p.collection||[]).length}</div></div>
                 <div class="admin-stat-card"><div class="label">Nehézség</div><div class="value">${Math.round((p.battleDifficulty||1)*100)/100}x</div></div>
+            </div>
+            <div style="margin-top:14px;padding:10px;background:var(--surface);border-radius:10px;border:1px solid var(--surface-3)">
+                <div style="font-size:0.75rem;color:var(--neon-gold);font-weight:700;margin-bottom:8px">Játékosnév</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <input id="adminNameInput" type="text" maxlength="30" placeholder="${p.displayName || 'Névtelen'}" value="${p.displayName || ''}" style="flex:1;min-width:120px;padding:6px 8px;border-radius:8px;border:1px solid var(--surface-3);background:var(--surface-2);color:var(--text);font-family:'Outfit',sans-serif;font-size:0.9rem">
+                    <button onclick="adminSaveName()" style="font-family:'Outfit',sans-serif;font-size:0.8rem;font-weight:700;padding:6px 14px;border-radius:8px;border:none;background:var(--neon-mag);color:#fff;cursor:pointer">Mentés</button>
+                    <span id="adminNameMsg" style="font-size:0.75rem;color:var(--neon-lime)"></span>
+                </div>
+            </div>
+            <div style="margin-top:8px;padding:10px;background:var(--surface);border-radius:10px;border:1px solid var(--surface-3)">
+                <div style="font-size:0.75rem;color:var(--neon-gold);font-weight:700;margin-bottom:8px">Smaragd ajándék</div>
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                    <input id="adminTokenInput" type="number" min="1" max="9999" value="100" style="width:80px;padding:6px 8px;border-radius:8px;border:1px solid var(--surface-3);background:var(--surface-2);color:var(--text);font-family:'Outfit',sans-serif;font-size:0.9rem">
+                    <button onclick="adminGiveTokens()" style="font-family:'Outfit',sans-serif;font-size:0.8rem;font-weight:700;padding:6px 14px;border-radius:8px;border:none;background:var(--neon-gold);color:#000;cursor:pointer">+ Smaragd adása</button>
+                    <span id="adminTokenMsg" style="font-size:0.75rem;color:var(--neon-lime)"></span>
+                </div>
             </div>
             <h3 style="color:var(--neon-cyan);font-size:0.85rem;margin-top:14px">Feladattípus statisztika</h3>
             ${typeHtml}`;
@@ -3522,8 +3667,23 @@ function showAdminTab(tab) {
         </tbody></table>`;
     } else if (tab === 'cards') {
         const col = p.collection || [];
+        const otherPlayers = adminPlayers.filter(x => x.uid !== adminSelectedUid);
+        const transferSection = `<div style="margin-bottom:12px;padding:10px;background:var(--surface);border-radius:10px;border:1px solid var(--surface-3)">
+            <div style="font-size:0.75rem;color:var(--neon-gold);font-weight:700;margin-bottom:8px">Kártyamásolás más játékostól</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+                <select id="adminSourceSelect" onchange="adminShowSourceCards(this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--surface-3);background:var(--surface-2);color:var(--text);font-family:'Outfit',sans-serif;font-size:0.8rem">
+                    <option value="">-- Forrás játékos --</option>
+                    ${otherPlayers.map(x => `<option value="${x.uid}">${adminPlayerLabel(x)} (${(x.collection||[]).length} kártya)</option>`).join('')}
+                </select>
+            </div>
+            <div id="adminSourceCards" style="max-height:220px;overflow-y:auto;margin-bottom:8px"></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <button onclick="adminDoTransfer()" style="font-family:'Outfit',sans-serif;font-size:0.8rem;font-weight:700;padding:6px 14px;border-radius:8px;border:none;background:var(--neon-cyan);color:#000;cursor:pointer">Kijelöltek másolása →</button>
+                <span id="adminTransferMsg" style="font-size:0.75rem;color:var(--neon-lime)"></span>
+            </div>
+        </div>`;
         if (col.length === 0) {
-            c.innerHTML = backBtn + '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nincs kártya</div>';
+            c.innerHTML = backBtn + transferSection + '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nincs kártya</div>';
         } else {
             const byCategory = {};
             col.forEach(card => {
@@ -3532,7 +3692,7 @@ function showAdminTab(tab) {
                 byCategory[cat].push(card);
             });
             const catNames = {classic:'🧠 Classic',italian:'🇮🇹 Italian',fusion:'🔬 Keverés',egyéb:'❓ Egyéb'};
-            let html = backBtn + `<div style="margin-bottom:8px;font-size:0.85rem;color:var(--text-dim)">Összesen: ${col.length} kártya</div>`;
+            let html = backBtn + transferSection + `<div style="margin-bottom:8px;font-size:0.85rem;color:var(--text-dim)">Összesen: ${col.length} kártya</div>`;
             Object.entries(byCategory).forEach(([cat, cards]) => {
                 html += `<div style="color:var(--neon-cyan);font-size:0.8rem;font-weight:700;margin:10px 0 4px">${catNames[cat]||cat} (${cards.length})</div>`;
                 html += `<table class="admin-table"><thead><tr><th>Név</th><th>Ritkaság</th><th>⚔️</th><th>Rizz</th><th>Sigma</th><th>Brain</th><th>😴</th></tr></thead><tbody>`;
