@@ -3431,13 +3431,7 @@ function loadAllPlayers() {
 
 function renderAdminPlayerList() {
     const c = document.getElementById('adminContent');
-    // Auto-select local player
-    if (!adminSelectedUid) {
-        adminSelectedUid = 'local';
-        showAdminTab('summary');
-        return;
-    }
-    if (adminSelectedUid === 'list') {
+    if (adminSelectedUid === 'list' || !adminSelectedUid) {
         adminSelectedUid = null;
         // Show player list
         const rankOf = (p) => {
