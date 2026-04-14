@@ -3721,12 +3721,59 @@ function showAdminTab(tab) {
         }
     } else if (tab === 'battles') {
         const battles = log.filter(e => e.evType === 'battle').reverse();
-        c.innerHTML = backBtn + (battles.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>' :
-            `<table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Nehézség</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
+        if (battles.length === 0) {
+            c.innerHTML = backBtn + '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt csata</div>';
+        } else {
+            const bWins = battles.filter(b => b.result === 'player');
+            const bLoss = battles.filter(b => b.result !== 'player');
+            const winRate = Math.round(bWins.length / battles.length * 100);
+            const avgDiff = battles.length ? Math.round(battles.reduce((s,b) => s + (b.difficulty||1), 0) / battles.length * 100) / 100 : 0;
+            const maxDiff = battles.length ? Math.max(...battles.map(b => b.difficulty||1)) : 0;
+            const avgSurv = bWins.length ? Math.round(bWins.reduce((s,b) => s + (b.survived||0), 0) / bWins.length * 10) / 10 : 0;
+            // Current win/loss streak
+            let streak = 0, streakType = battles[0]?.result;
+            for (const b of battles) { if (b.result === streakType) streak++; else break; }
+            const streakLabel = streakType === 'player' ? `🏆 ${streak} győzelem` : `💀 ${streak} vereség`;
+            // Most used cards
+            const cardCount = {};
+            battles.forEach(b => (b.player||[]).forEach(c => { cardCount[c.name] = (cardCount[c.name]||0) + 1; }));
+            const topCards = Object.entries(cardCount).sort((a,b) => b[1]-a[1]).slice(0,3);
+            // Card survival rate
+            const cardSurv = {};
+            battles.forEach(b => (b.player||[]).forEach(c => {
+                if (!cardSurv[c.name]) cardSurv[c.name] = {alive:0,total:0};
+                cardSurv[c.name].total++;
+                if (c.alive) cardSurv[c.name].alive++;
+            }));
+            const topSurv = Object.entries(cardSurv).filter(([,v])=>v.total>=2).sort((a,b)=>b[1].alive/b[1].total - a[1].alive/a[1].total).slice(0,3);
+
+            c.innerHTML = backBtn + `
+            <div class="admin-stat-grid" style="margin-bottom:12px">
+                <div class="admin-stat-card"><div class="label">Összes csata</div><div class="value">${battles.length}</div></div>
+                <div class="admin-stat-card"><div class="label">Győzelem</div><div class="value" style="color:var(--neon-lime)">${bWins.length}</div><div class="sub">${winRate}%</div></div>
+                <div class="admin-stat-card"><div class="label">Vereség</div><div class="value" style="color:var(--neon-mag)">${bLoss.length}</div></div>
+                <div class="admin-stat-card"><div class="label">Jelenlegi sorozat</div><div class="value" style="font-size:0.9rem">${streakLabel}</div></div>
+                <div class="admin-stat-card"><div class="label">Átlag nehézség</div><div class="value">${avgDiff}x</div></div>
+                <div class="admin-stat-card"><div class="label">Max nehézség</div><div class="value" style="color:var(--neon-gold)">${Math.round(maxDiff*100)/100}x</div></div>
+                <div class="admin-stat-card"><div class="label">Jelenlegi nehézség</div><div class="value" style="color:var(--neon-cyan)">${Math.round((p.battleDifficulty||1)*100)/100}x</div></div>
+                <div class="admin-stat-card"><div class="label">Átl. túlélő kártya</div><div class="value">${avgSurv}</div><div class="sub">győzelmenként</div></div>
+            </div>
+            ${topCards.length ? `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+                <div style="flex:1;min-width:140px;padding:8px;background:var(--surface);border-radius:8px;border:1px solid var(--surface-3)">
+                    <div style="font-size:0.7rem;color:var(--neon-cyan);font-weight:700;margin-bottom:4px">Legtöbbet bevetett</div>
+                    ${topCards.map(([n,c])=>`<div style="font-size:0.78rem;display:flex;justify-content:space-between"><span>${n}</span><span style="color:var(--neon-gold)">${c}x</span></div>`).join('')}
+                </div>
+                ${topSurv.length ? `<div style="flex:1;min-width:140px;padding:8px;background:var(--surface);border-radius:8px;border:1px solid var(--surface-3)">
+                    <div style="font-size:0.7rem;color:var(--neon-cyan);font-weight:700;margin-bottom:4px">Legjobb túlélési arány</div>
+                    ${topSurv.map(([n,v])=>`<div style="font-size:0.78rem;display:flex;justify-content:space-between"><span>${n}</span><span style="color:var(--neon-lime)">${Math.round(v.alive/v.total*100)}%</span></div>`).join('')}
+                </div>` : ''}
+            </div>` : ''}
+            <table class="admin-table"><thead><tr><th>Idő</th><th>Eredmény</th><th>Nehézség</th><th>Játékos</th><th>Ellenfél</th></tr></thead><tbody>
             ${battles.map(b => `<tr><td>${fmtTime(b.t)}</td><td class="${b.result==='player'?'admin-correct':'admin-wrong'}">${b.result==='player'?'🏆':'💀'}</td><td>${b.difficulty||'?'}x</td>
             <td>${(b.player||[]).map(x=>`${x.name}(${x.hp}/${x.maxHp}${x.alive?'':'💀'})`).join(', ')}</td>
             <td>${(b.enemy||[]).map(x=>`${x.name}(${x.hp}/${x.maxHp}${x.alive?'':'💀'})`).join(', ')}</td></tr>`).join('')}
-        </tbody></table>`);
+            </tbody></table>`;
+        }
     } else if (tab === 'creations') {
         const creations = log.filter(e => e.evType==='fusion'||e.evType==='creator'||e.evType==='shop').reverse();
         c.innerHTML = backBtn + (creations.length === 0 ? '<div style="text-align:center;color:var(--text-dim);padding:20px">Még nem volt alkotás</div>' :
