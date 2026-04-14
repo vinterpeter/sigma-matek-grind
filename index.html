@@ -222,42 +222,25 @@
         .rule-label { font-size: 0.8rem; color: var(--text-dim); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; min-width: 40px; }
         .rule-arrow { color: var(--neon-mag); font-size: 1.5rem; }
 
-        /* === PINPAD === */
+        /* === ANSWER BUTTONS (0-20) === */
         .pinpad-area { margin-top: 8px; }
-        .pin-display {
-            font-family: 'Outfit', sans-serif; font-size: 2.8rem; font-weight: 900;
-            color: #7ec8f0; text-align: center;
-            background: var(--surface-2); border-radius: 12px;
-            padding: 6px 16px; margin-bottom: 8px;
-            border: 3px solid var(--surface-3);
-            min-height: 50px; display: flex; align-items: center; justify-content: center;
-            text-shadow: 0 0 15px rgba(255,208,0,0.3);
-            letter-spacing: 8px;
-        }
-        .pin-display.correct-flash { border-color: var(--neon-lime); background: rgba(168,255,0,0.1); }
-        .pin-display.wrong-flash { border-color: var(--neon-mag); background: rgba(255,45,149,0.1); }
-        .pin-cursor { animation: blink 0.8s step-end infinite; }
-        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
-        .pinpad-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
-            max-width: 300px; margin: 0 auto;
+        .numbtns-grid {
+            display: flex; flex-wrap: wrap; gap: 5px;
+            max-width: 330px; margin: 0 auto; justify-content: center;
         }
         .pin-btn {
-            font-family: 'Outfit', sans-serif; font-size: 1.8rem; font-weight: 900;
-            padding: 10px 6px; border: 2px solid var(--surface-3); border-radius: 12px;
+            font-family: 'Outfit', sans-serif; font-size: 1.35rem; font-weight: 900;
+            width: 40px; height: 44px;
+            border: 2px solid var(--surface-3); border-radius: 10px;
             background: var(--surface-2); color: #7ec8f0; cursor: pointer;
-            transition: all 0.12s; position: relative; overflow: hidden;
+            transition: all 0.12s;
             -webkit-tap-highlight-color: transparent; user-select: none;
+            display: flex; align-items: center; justify-content: center;
         }
-        .pin-btn:active { transform: scale(0.93); background: var(--surface-3); }
+        .pin-btn:active { transform: scale(0.9); background: var(--surface-3); }
         .pin-btn:hover { border-color: var(--neon-purple); }
-        .pin-btn.pin-del { font-size: 1.3rem; color: var(--neon-mag); }
-        .pin-btn.pin-ok {
-            font-size: 1.3rem; font-weight: 900;
-            background: linear-gradient(135deg, var(--neon-lime), #60cc00);
-            color: var(--void); border-color: var(--neon-lime);
-        }
-        .pin-btn.pin-ok:hover { box-shadow: 0 0 16px rgba(168,255,0,0.3); }
+        .pin-btn.correct { background: rgba(168,255,0,0.2) !important; border-color: var(--neon-lime) !important; color: var(--neon-lime) !important; }
+        .pin-btn.wrong { background: rgba(255,45,149,0.2) !important; border-color: var(--neon-mag) !important; color: var(--neon-mag) !important; }
 
         /* === COMPARE BUTTONS === */
         .compare-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 10px; max-width: 320px; margin-left: auto; margin-right: auto; }
@@ -327,9 +310,8 @@
             .rule-cell { font-size: 1.6rem; padding: 6px 16px; }
             .timer-section { margin-top: 4px; }
             .pinpad-area { margin-top: 6px; }
-            .pin-display { font-size: 2.6rem; padding: 6px 14px; min-height: 46px; margin-bottom: 6px; }
-            .pinpad-grid { max-width: 320px; gap: 6px; }
-            .pin-btn { padding: 12px 8px; font-size: 1.8rem; border-radius: 12px; }
+            .numbtns-grid { max-width: 315px; gap: 4px; }
+            .pin-btn { width: 37px; height: 41px; font-size: 1.2rem; }
             .compare-grid { max-width: 340px; gap: 8px; margin-top: 8px; }
             .compare-btn { font-size: 2.4rem; padding: 16px 8px; }
             .rule-choose-grid { max-width: 340px; gap: 8px; margin-top: 8px; }
@@ -928,8 +910,7 @@
         /* === RESPONSIVE === */
         @media (max-width: 420px) {
             .problem { font-size: 2rem !important; }
-            .pin-btn { font-size: 1.5rem; padding: 12px 6px; }
-            .pin-display { font-size: 2.2rem; }
+            .pin-btn { font-size: 1.15rem; width: 34px; height: 38px; }
             .header h1 { font-size: 2rem !important; }
             .stats-bar { grid-template-columns: repeat(2,1fr); }
             .encyclopedia-grid { grid-template-columns: 1fr; }
@@ -994,20 +975,28 @@
             </div>
             <div id="inputArea">
                 <div class="pinpad-area" id="pinpadArea">
-                    <div class="pin-display" id="pinDisplay"><span class="pin-cursor">_</span></div>
-                    <div class="pinpad-grid" id="pinpadGrid">
-                        <button class="pin-btn" onclick="pinPress(1)">1</button>
-                        <button class="pin-btn" onclick="pinPress(2)">2</button>
-                        <button class="pin-btn" onclick="pinPress(3)">3</button>
-                        <button class="pin-btn" onclick="pinPress(4)">4</button>
-                        <button class="pin-btn" onclick="pinPress(5)">5</button>
-                        <button class="pin-btn" onclick="pinPress(6)">6</button>
-                        <button class="pin-btn" onclick="pinPress(7)">7</button>
-                        <button class="pin-btn" onclick="pinPress(8)">8</button>
-                        <button class="pin-btn" onclick="pinPress(9)">9</button>
-                        <button class="pin-btn pin-del" onclick="pinDelete()">⌫<div style="font-size:0.5rem;margin-top:1px">Törlés</div></button>
-                        <button class="pin-btn" onclick="pinPress(0)">0</button>
-                        <button class="pin-btn pin-ok" onclick="pinSubmit()">OK</button>
+                    <div class="numbtns-grid" id="pinpadGrid">
+                        <button class="pin-btn" data-val="0" onclick="answerBtn(0)">0</button>
+                        <button class="pin-btn" data-val="1" onclick="answerBtn(1)">1</button>
+                        <button class="pin-btn" data-val="2" onclick="answerBtn(2)">2</button>
+                        <button class="pin-btn" data-val="3" onclick="answerBtn(3)">3</button>
+                        <button class="pin-btn" data-val="4" onclick="answerBtn(4)">4</button>
+                        <button class="pin-btn" data-val="5" onclick="answerBtn(5)">5</button>
+                        <button class="pin-btn" data-val="6" onclick="answerBtn(6)">6</button>
+                        <button class="pin-btn" data-val="7" onclick="answerBtn(7)">7</button>
+                        <button class="pin-btn" data-val="8" onclick="answerBtn(8)">8</button>
+                        <button class="pin-btn" data-val="9" onclick="answerBtn(9)">9</button>
+                        <button class="pin-btn" data-val="10" onclick="answerBtn(10)">10</button>
+                        <button class="pin-btn" data-val="11" onclick="answerBtn(11)">11</button>
+                        <button class="pin-btn" data-val="12" onclick="answerBtn(12)">12</button>
+                        <button class="pin-btn" data-val="13" onclick="answerBtn(13)">13</button>
+                        <button class="pin-btn" data-val="14" onclick="answerBtn(14)">14</button>
+                        <button class="pin-btn" data-val="15" onclick="answerBtn(15)">15</button>
+                        <button class="pin-btn" data-val="16" onclick="answerBtn(16)">16</button>
+                        <button class="pin-btn" data-val="17" onclick="answerBtn(17)">17</button>
+                        <button class="pin-btn" data-val="18" onclick="answerBtn(18)">18</button>
+                        <button class="pin-btn" data-val="19" onclick="answerBtn(19)">19</button>
+                        <button class="pin-btn" data-val="20" onclick="answerBtn(20)">20</button>
                     </div>
                 </div>
                 <div class="compare-grid" id="compareArea" style="display:none">
@@ -1633,7 +1622,6 @@ function randReward() { return 5 + Math.floor(Math.random()*6); }
 
 // ==================== GAME ====================
 let currentAnswer=0, currentAnswerType='number', timerInterval=null, timerValue=100, isAnswering=false;
-let pinValue = '', currentRetries = 0;
 
 // --- ADAPTIVE PROBLEM SELECTION ---
 const problemTypes = ['addition','subtraction','sequence','ruleGame','potlas','compare','wordProblem','ruleRecognize'];
@@ -1972,8 +1960,8 @@ function readStory() {
 
 // --- MAIN GENERATE ---
 function generateProblem() {
-    pinValue = ''; currentRetries = 0; updatePinDisplay();
-    // Reset compare/ruleChoose buttons from previous round
+    // Reset all answer buttons from previous round
+    document.querySelectorAll('.pin-btn').forEach(b => b.classList.remove('correct','wrong'));
     document.querySelectorAll('.compare-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     document.querySelectorAll('.rule-choose-btn').forEach(b => { b.classList.remove('correct','wrong'); });
     const type = pickProblemType();
@@ -1999,31 +1987,11 @@ function generateProblem() {
     startTimer(); state.questionStart=Date.now(); isAnswering=true;
 }
 
-// --- PINPAD ---
-function updatePinDisplay() {
-    const d = document.getElementById('pinDisplay');
-    d.className = 'pin-display';
-    d.innerHTML = pinValue ? pinValue : '<span class="pin-cursor">_</span>';
-}
-
-function pinPress(n) {
+// --- ANSWER BUTTONS ---
+function answerBtn(n) {
     if(!isAnswering) return;
     AudioEngine.play('click');
-    if(pinValue.length >= 2) return;
-    pinValue += String(n);
-    updatePinDisplay();
-}
-
-function pinDelete() {
-    if(!isAnswering) return;
-    AudioEngine.play('click');
-    pinValue = pinValue.slice(0,-1);
-    updatePinDisplay();
-}
-
-function pinSubmit() {
-    if(!isAnswering || pinValue==='') return;
-    processAnswer(parseInt(pinValue));
+    processAnswer(n);
 }
 
 function compareSubmit(sign) {
@@ -2373,11 +2341,11 @@ function processAnswer(answer) {
         const idx = options.indexOf(answer);
         displayEl = idx >= 0 ? document.querySelectorAll('.rule-choose-btn')[idx] : null;
     } else {
-        displayEl = document.getElementById('pinDisplay');
+        displayEl = document.querySelector(`.pin-btn[data-val="${answer}"]`);
     }
 
     if (isCorrect) {
-        if(displayEl) displayEl.classList.add((currentAnswerType==='compare'||currentAnswerType==='ruleChoose')?'correct':'correct-flash');
+        if(displayEl) displayEl.classList.add('correct');
         state.correct++; state.streak++; state.dailyCorrect++; state.correctSinceLastReward++;
         if(state.streak>state.bestStreak) state.bestStreak=state.streak;
         let xp=10;
@@ -2405,30 +2373,14 @@ function processAnswer(answer) {
             state.correctSinceLastReward=0; state.nextRewardAt=randReward();
         }
     } else {
-        currentRetries++;
-        if(displayEl) displayEl.classList.add((currentAnswerType==='compare'||currentAnswerType==='ruleChoose')?'wrong':'wrong-flash');
+        if(displayEl) displayEl.classList.add('wrong');
         state.streak=0; state.fastStreak=0;
         AudioEngine.play('wrong');
 
-        if (currentRetries < 2) {
-            // First wrong: let them try again
-            showFeedback('PRÓBÁLD ÚJRA! 🤔', 'var(--neon-orange)');
-            AudioEngine.speak('Próbáld újra!');
-            pinValue = '';
-            setTimeout(() => {
-                updatePinDisplay();
-                document.querySelectorAll('.compare-btn').forEach(b => b.classList.remove('wrong','correct'));
-                document.querySelectorAll('.rule-choose-btn').forEach(b => b.classList.remove('wrong','correct'));
-                isAnswering = true;
-                startTimer();
-            }, 800);
-            try { saveState(); } catch(e) {}
-            return; // Don't generate new problem
-        }
-
-        // Second wrong: show correct answer, move on
+        // Show correct answer
         if(currentAnswerType==='number') {
-            document.getElementById('pinDisplay').innerHTML = `<span style="color:var(--neon-mag)">❌ ${answer}</span> <span style="color:var(--text-dim)">→</span> <span style="color:var(--neon-lime)">✅ ${currentAnswer}</span>`;
+            const correctBtn = document.querySelector(`.pin-btn[data-val="${currentAnswer}"]`);
+            if(correctBtn) correctBtn.classList.add('correct');
         } else if(currentAnswerType==='ruleChoose') {
             const options = [-3,-2,-1,1,2,3];
             document.querySelectorAll('.rule-choose-btn').forEach((b,i) => {
@@ -4120,10 +4072,18 @@ document.addEventListener('keydown',e=>{
         if(e.key==='<') compareSubmit('<');
         else if(e.key==='>') compareSubmit('>');
         else if(e.key==='='||e.key==='Enter') compareSubmit('=');
-    } else {
-        if(e.key>='0'&&e.key<='9') pinPress(parseInt(e.key));
-        else if(e.key==='Backspace') pinDelete();
-        else if(e.key==='Enter') pinSubmit();
+    } else if(currentAnswerType==='number') {
+        // Keyboard: type a number 0-20 and press Enter
+        if(e.key>='0'&&e.key<='9') {
+            const btn = document.querySelector(`.pin-btn[data-val="${e.key}"]`);
+            if(btn) btn.focus();
+        }
+        if(e.key==='Enter') {
+            const focused = document.activeElement;
+            if(focused && focused.classList.contains('pin-btn') && focused.dataset.val !== undefined) {
+                answerBtn(parseInt(focused.dataset.val));
+            }
+        }
     }
 });
 </script>
